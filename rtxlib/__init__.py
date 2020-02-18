@@ -35,7 +35,7 @@ def clearOldLog():
 def logToFile(any):
     """ appends the message to the execution.log file """
     if LOG_FOLDER is not None:
-        f = open(LOG_FOLDER + '/execution.log', 'ab')
+        f = open(LOG_FOLDER + '/execution.log', 'w+')
         f.write(str(any) + "\n")
 
 

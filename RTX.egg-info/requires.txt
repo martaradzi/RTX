@@ -1,0 +1,9 @@
+colorama
+kafka-python
+scikit-optimize
+flask
+pandas
+seaborn
+paho-mqtt
+requests
+deap

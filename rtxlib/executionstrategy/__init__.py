@@ -2,6 +2,7 @@ from rtxlib.executionstrategy.ForeverStrategy import start_forever_strategy
 from rtxlib.executionstrategy.StepStrategy import start_step_strategy
 from rtxlib.executionstrategy.SelfOptimizerStrategy import start_self_optimizer_strategy
 from rtxlib.executionstrategy.SequencialStrategy import start_sequential_strategy
+from rtxlib.executionstrategy.EvolutionaryStrategy import start_evolutionary_strategy
 
 from rtxlib import log_results, error, info
 
@@ -14,8 +15,12 @@ def run_execution_strategy(wf):
     try:
         # start the right execution strategy
         if wf.execution_strategy["type"] == "sequential":
-            log_results(wf.folder, wf.execution_strategy["knobs"][0].keys() + ["result"], append=False)
+            # log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
             start_sequential_strategy(wf)
+
+        elif wf.execution_strategy["type"] == "evolutionary":
+            log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+            start_evolutionary_strategy(wf)
 
         elif wf.execution_strategy["type"] == "self_optimizer":
             log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)

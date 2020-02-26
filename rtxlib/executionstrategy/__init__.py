@@ -19,19 +19,19 @@ def run_execution_strategy(wf):
             start_sequential_strategy(wf)
 
         elif wf.execution_strategy["type"] == "evolutionary":
-            log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+            log_results(wf.folder, list(wf.execution_strategy["knobs"].keys()) + ["result"], append=False)
             start_evolutionary_strategy(wf)
 
         elif wf.execution_strategy["type"] == "self_optimizer":
-            log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+            log_results(wf.folder, list(wf.execution_strategy["knobs"].keys()) + ["result"], append=False)
             start_self_optimizer_strategy(wf)
 
         elif wf.execution_strategy["type"] == "uncorrelated_self_optimizer":
-            log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+            log_results(wf.folder, list(wf.execution_strategy["knobs"].keys()) + ["result"], append=False)
             start_uncorrelated_self_optimizer_strategy(wf)
 
         elif wf.execution_strategy["type"] == "step_explorer":
-            log_results(wf.folder, wf.execution_strategy["knobs"].keys() + ["result"], append=False)
+            log_results(wf.folder, list(wf.execution_strategy["knobs"].keys()) + ["result"], append=False)
             start_step_strategy(wf)
 
         elif wf.execution_strategy["type"] == "forever":

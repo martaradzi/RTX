@@ -96,11 +96,11 @@ def log_results(experiment_folder, data, append=True):
     """ logs the result values of an experiment to a csv file """
     try:
         if append:
-            with open('./' + str(experiment_folder) + '/results.csv', 'ab') as csv_file:
+            with open('./' + str(experiment_folder) + '/results.csv', 'w+') as csv_file:
                 writer = csv.writer(csv_file, dialect='excel')
                 writer.writerow(data)
         else:
-            with open('./' + str(experiment_folder) + '/results.csv', 'wb') as csv_file:
+            with open('./' + str(experiment_folder) + '/results.csv', 'w+') as csv_file:
                 writer = csv.writer(csv_file, dialect='excel')
                 writer.writerow(data)
 

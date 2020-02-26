@@ -15,7 +15,7 @@ def run_execution_strategy(wf):
     try:
         # start the right execution strategy
         if wf.execution_strategy["type"] == "sequential":
-            # log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
+            log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
             start_sequential_strategy(wf)
 
         elif wf.execution_strategy["type"] == "evolutionary":

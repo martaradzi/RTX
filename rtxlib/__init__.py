@@ -68,9 +68,9 @@ def process(preText, i, total):
     sys.stdout.flush()
     size_str = Fore.YELLOW + "> " + preText + "["
     percentage = 30 * i / total
-    for j in range(0, percentage):
+    for j in range(0, int(percentage)):
         size_str += "#"
-    for k in range(percentage, 30):
+    for k in range(int(percentage), 30):
         size_str += "."
     size_str += "] Target: " + str(total) + " | Done: " + str(i) + Fore.RESET
     sys.stdout.write('%s\r' % size_str)

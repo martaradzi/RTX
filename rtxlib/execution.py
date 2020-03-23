@@ -1,5 +1,10 @@
 from rtxlib import info, error, warn, direct_print, process, log_results, current_milli_time
-
+import numpy as np
+from sklearn.cluster import Birch
+from matplotlib import pyplot as plt
+import seaborn as sns
+from sklearn import metrics
+from sklearn.metrics import pairwise_distances
 
 def _defaultChangeProvider(variables,wf):
     """ by default we just forword the message to the change provider """
@@ -333,7 +338,7 @@ def run_model(model, n_clusters, test_data):
     model.partial_fit()
     # run predict to check the labels and for plotting later
     labels = model.predict(test_data)
-    # print(len(model.labels_))
+    # print(len(model.subcluster_centers_))
 
     plt.scatter(test_data[:,0], test_data[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead')
@@ -341,11 +346,12 @@ def run_model(model, n_clusters, test_data):
     # plt.savefig(folder + 'fiure_' + experiment_name +'.png')
     plt.show()
     plt.close()
-
-    with open(folder + 'labels_' + experiment_name + '.txt', 'w') as file1:
-        file1.write("The number of the clusters is" + str(len(model.subcluster_labels_)) + "\n")
-        file1.write("The centroids are: \n")
-        file1.write(str(model.subcluster_centers_))
-    file1.close()
+    
+    # saving the data (not the model)
+    # with open(folder + 'labels_' + experiment_name + '.txt', 'w') as file1:
+    #     file1.write("The number of the clusters is" + str(len(model.subcluster_labels_)) + "\n")
+    #     file1.write("The centroids are: \n")
+    #     file1.write(str(model.subcluster_centers_))
+    # file1.close()
 
 

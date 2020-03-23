@@ -3,6 +3,7 @@ from rtxlib.executionstrategy.StepStrategy import start_step_strategy
 from rtxlib.executionstrategy.SelfOptimizerStrategy import start_self_optimizer_strategy
 from rtxlib.executionstrategy.SequencialStrategy import start_sequential_strategy
 from rtxlib.executionstrategy.EvolutionaryStrategy import start_evolutionary_strategy
+from rtxlib.executionstrategy.ClusteringStrategy import start_clustering_strategy
 
 from rtxlib import log_results, error, info
 
@@ -36,6 +37,11 @@ def run_execution_strategy(wf):
 
         elif wf.execution_strategy["type"] == "forever":
             start_forever_strategy(wf)
+            
+        elif wf.execution_strategy["type"] == "clustering":
+            log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
+            start_clustering_strategy(wf)
+    
     except RuntimeError:
         error("Stopped the whole workflow as requested by a RuntimeError")
     # finished

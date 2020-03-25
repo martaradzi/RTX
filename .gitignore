@@ -14,3 +14,7 @@ dist/
 examples/**/*.png
 examples/**/execution.log
 examples/**/results.csv
+*.ipynb
+*.txt
+wandb/
+models/

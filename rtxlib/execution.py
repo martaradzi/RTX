@@ -6,6 +6,8 @@ import seaborn as sns
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
 
+import wandb
+
 def _defaultChangeProvider(variables,wf):
     """ by default we just forword the message to the change provider """
     return variables
@@ -144,9 +146,6 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     # start collecting data
     sample_size = exp["sample_size"]
 
-    # Debug for plotting data
-    # to_plot = []
-
     window_overhead = [] # this variable stores the overhead data for a specific size 
     window = exp['window_size']
     
@@ -157,6 +156,8 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     
     # variable to store a certain amount of samples from each knob to later predict on
     to_add = []
+    # for data analysis we can print to a file
+    to_print = []
     
     i = 0
     try:
@@ -187,6 +188,15 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
                 
                 # gather states of simulation
                 data_gathering_place.append(np.array(list(exp["state"].values())))
+                to_print.append((new_data['carNumber'],new_data['overhead']))
+                
+                # gather test data
+                if (i % 10 == 0):
+                    to_add.append(list(exp["state"].values()))
+                    i += 1
+                    process("CollectSamples \t| ", i, sample_size)
+                    continue
+                
 
                 # patrially fit the model with each chunk of data saved in data_gathering_place
                 if len(data_gathering_place) == chunk_size_for_clustering:
@@ -194,13 +204,9 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
                     birchModel.partial_fit(cpy)
                     data_gathering_place = []
 
-                    # debug for plotting data 
-                    # if i == (sample_size - 1):
-                    #     to_plot = cpy
+                    wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=((i+1)/chunk_size_for_clustering))
                 
                 # gather data from each knob to return it to the clustering model
-                if i > (sample_size - 51):
-                    to_add.append(list(exp["state"].values()))
 
                 i += 1
                 process("CollectSamples \t| ", i, sample_size)
@@ -223,11 +229,12 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
         # this iteration should stop asap
         error("This experiment got stopped as requested by a StopIteration exception")
 
-    # TODO: figure out what the result value has to be
-    #       1. Maybe the centroids
-    #       2. Maybe labels
+    import json
+    with open('2ksamplex12.txt', 'a+') as file1:
+        file1.write(json.dumps(to_print))
+
     try:
-        result = wf.evaluator(exp["state"],wf)
+        result = wf.evaluator(birchModel)
     except:
         result = 0
         error("evaluator failed")
@@ -253,37 +260,6 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     # and to_add (with number of states for predicting in the clustering strategy)
     return result, window_overhead, to_add
 
-    # leftover i used to gater data in appropriate form
-def transfrom_to_nparray(data, feature_array):
-    """ Transform the gathered data to numpy array to fit the model's requirements """
-    transformed_data = []
-
-    # if the data have one observation
-    if len(data) == 2:
-        t = ()
-        for item in data:
-            for k, v in item.items():
-                if k in feature_array:
-                    t = t + (v,)
-        transformed_data.append(t)
-        transformed_data = np.array(transformed_data)
-        transformed_data = transformed_data.reshape(1, -1)
-        return transformed_data
-        
-    # if the adta is a collection of more than one obsevation
-    else:
-        for row in data:
-            t = ()
-            for item in row:
-                for k, v in item.items():
-                    if k in feature_array:
-                        t = t + (v,)
-            transformed_data.append(t)
-        transformed_data = np.array(transformed_data)
-        return transformed_data
-
-
-
 def plot_silhouette_scores(model, initial_clusters_number, test_data):
     """ Plot silhouette scores and return the best number of clusters"""
     silhouette_scores = [] # store scores for each number of clusters 
@@ -292,8 +268,8 @@ def plot_silhouette_scores(model, initial_clusters_number, test_data):
 
     # if statement only needed if the sample size is too small (when debugging)
     if n_clusters_model > initial_clusters_number:
-
-        clusters_range = range(initial_clusters_number, (n_clusters_model+1))
+        # clusters_range = range(initial_clusters_number, (n_clusters_model+1))
+        clusters_range = range(initial_clusters_number, 20)
         results_dict = []
         # print(clusters_range)
         for number in clusters_range:
@@ -307,6 +283,7 @@ def plot_silhouette_scores(model, initial_clusters_number, test_data):
                 s = metrics.silhouette_score(test_data, labels, metric='euclidean')
                 silhouette_scores.append(s)
                 results_dict.append((number, s))
+                wandb.log({'score': s}, step=number)
             except ValueError:
                 print('impossible to check silhouette score for ' + str(number) + ' number of clusters')
             # print(s)
@@ -329,23 +306,29 @@ def plot_silhouette_scores(model, initial_clusters_number, test_data):
     
 def run_model(model, n_clusters, test_data):
 
-    # where to save the data. Not really usefull rn
-    folder = './results/main_fit/'
-    experiment_name = "threshhold1_1"
-    # print(n_clusters)
     # for the final fit of data, set the number of clusters
+
     model.set_params(n_clusters = n_clusters)
     model.partial_fit()
     # run predict to check the labels and for plotting later
     labels = model.predict(test_data)
+    print(len(np.unique(np.array(labels))))
+    cluster_labels = labels
+
+    wandb.sklearn.plot_clusterer(model, test_data, cluster_labels, labels=None, model_name='model_1_all_features')
+    
     # print(len(model.subcluster_centers_))
 
-    plt.scatter(test_data[:,0], test_data[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(test_data[:,0], test_data[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead')
-    plt.xlabel('Overhead Variance')
+    plt.xlabel('Number of Cars')
     # plt.savefig(folder + 'fiure_' + experiment_name +'.png')
     plt.show()
     plt.close()
+    
+    # import pickle
+    # import joblib
+    # joblib.dump(model, './models/filename.pkl')
     
     # saving the data (not the model)
     # with open(folder + 'labels_' + experiment_name + '.txt', 'w') as file1:

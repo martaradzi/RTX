@@ -157,7 +157,7 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     # variable to store a certain amount of samples from each knob to later predict on
     to_add = []
     # for data analysis we can print to a file
-    to_print = []
+    # to_print = []
     
     i = 0
     try:
@@ -188,10 +188,10 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
                 
                 # gather states of simulation
                 data_gathering_place.append(np.array(list(exp["state"].values())))
-                to_print.append((new_data['carNumber'],new_data['overhead']))
+                # to_print.append((new_data['carNumber'],new_data['overhead']))
                 
                 # gather test data
-                if (i % 10 == 0):
+                if (i % 5 == 0):
                     to_add.append(list(exp["state"].values()))
                     i += 1
                     process("CollectSamples \t| ", i, sample_size)
@@ -203,8 +203,6 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
                     cpy = np.array(data_gathering_place)
                     birchModel.partial_fit(cpy)
                     data_gathering_place = []
-
-                    wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=((i+1)/chunk_size_for_clustering))
                 
                 # gather data from each knob to return it to the clustering model
 
@@ -229,9 +227,11 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
         # this iteration should stop asap
         error("This experiment got stopped as requested by a StopIteration exception")
 
-    import json
-    with open('2ksamplex12.txt', 'a+') as file1:
-        file1.write(json.dumps(to_print))
+    # import json
+    # with open('2ksamplex12.txt', 'a+') as file1:
+    #     file1.write(json.dumps(to_print))
+
+    wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
 
     try:
         result = wf.evaluator(birchModel)
@@ -269,7 +269,7 @@ def plot_silhouette_scores(model, initial_clusters_number, test_data):
     # if statement only needed if the sample size is too small (when debugging)
     if n_clusters_model > initial_clusters_number:
         # clusters_range = range(initial_clusters_number, (n_clusters_model+1))
-        clusters_range = range(initial_clusters_number, 20)
+        clusters_range = range(initial_clusters_number, 100)
         results_dict = []
         # print(clusters_range)
         for number in clusters_range:
@@ -315,7 +315,7 @@ def run_model(model, n_clusters, test_data):
     print(len(np.unique(np.array(labels))))
     cluster_labels = labels
 
-    wandb.sklearn.plot_clusterer(model, test_data, cluster_labels, labels=None, model_name='model_1_all_features')
+    wandb.sklearn.plot_clusterer(model, test_data, cluster_labels, labels=None, model_name='var,med,07,std')
     
     # print(len(model.subcluster_centers_))
 

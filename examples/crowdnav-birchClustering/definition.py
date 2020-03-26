@@ -15,12 +15,12 @@ execution_strategy = {
         {'z': 4},
         {'z': 5},
         {'z': 6},
-        {'z': 1},
-        {'z': 2},
-        {'z': 3},
-        {'z': 4},
-        {'z': 5},
-        {'z': 6},
+        {'z': 7},
+        {'z': 8},
+        {'z': 9},
+        {'z': 10},
+        {'z': 11},
+        {'z': 12},
         # {'z': 1},
         # {'z': 2},
         # {'z': 3},
@@ -37,12 +37,11 @@ def primary_data_reducer(state, newData, wf, temp_array):
     overhead = temp_array[-1]
     state['carCount'] = newData['carNumber']
     state["overhead"] = overhead
-    state['avg_overhead'] = np.average(temp_array)
+    # state['avg_overhead'] = np.average(temp_array)
     state['std_overhead'] = np.std(temp_array)
     state['var_overhead'] = np.var(temp_array)
-    # state["moving_avg_overhead"] = (state["avg_overhead"] * cnt + overhead) / (cnt + 1) # moving average
     state['median_overhead'] = np.median(temp_array)
-    state['q1_overhead'] = np.quantile(temp_array, .25)
+    # state['q1_overhead'] = np.quantile(temp_array, .25)
     state['q2_overhead'] = np.quantile(temp_array, .75)
     # state["count"] = cnt + 1
     return state
@@ -73,12 +72,11 @@ def evaluator(model):
 def state_initializer(state, wf):
     state['carCount'] = 0
     state["overhead"] = 0
-    state['avg_overhead'] = 0
+    # state['avg_overhead'] = 0
     state['std_overhead'] = 0   
     state['var_overhead'] = 0
-    # state["moving_avg_overhead"] = 0
     state['median_overhead'] = 0
-    state['q1_overhead'] = 0
+    # state['q1_overhead'] = 0
     state['q2_overhead'] = 0
     # state["count"] = 0
     return state

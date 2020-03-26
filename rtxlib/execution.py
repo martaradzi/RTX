@@ -231,6 +231,7 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     # with open('2ksamplex12.txt', 'a+') as file1:
     #     file1.write(json.dumps(to_print))
 
+    print(exp['knobs'].values())
     wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
 
     try:
@@ -260,16 +261,16 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     # and to_add (with number of states for predicting in the clustering strategy)
     return result, window_overhead, to_add
 
-def plot_silhouette_scores(model, initial_clusters_number, test_data):
+def plot_silhouette_scores(model, test_data):
     """ Plot silhouette scores and return the best number of clusters"""
     silhouette_scores = [] # store scores for each number of clusters 
 
     n_clusters_model = len(model.subcluster_labels_) # check the current number of clusters of the model
 
     # if statement only needed if the sample size is too small (when debugging)
-    if n_clusters_model > initial_clusters_number:
+    if n_clusters_model > 2:
         # clusters_range = range(initial_clusters_number, (n_clusters_model+1))
-        clusters_range = range(initial_clusters_number, 100)
+        clusters_range = range(2, 20)
         results_dict = []
         # print(clusters_range)
         for number in clusters_range:

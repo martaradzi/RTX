@@ -43,7 +43,7 @@ def start_clustering_strategy(wf):
     test_data = np.array(data_to_test)
     
     # get silhouette scores using test set
-    n_clusters = plot_silhouette_scores(birchModel, 3, test_data)
+    n_clusters = plot_silhouette_scores(birchModel, test_data)
     run_model(birchModel, n_clusters, test_data)
 
     wandb.save("dynamic_car_number_change1.h5")

@@ -8,9 +8,10 @@ from rtxlib.execution import run_model
 
 from sklearn.cluster import Birch
 import numpy as np
-from sklearn.cluster import Birch
-from matplotlib import pyplot as plt
-import seaborn as sns
+# from matplotlib import pyplot as plt
+# import seaborn as sns
+
+import wandb
 
 
 def start_clustering_strategy(wf):
@@ -20,6 +21,7 @@ def start_clustering_strategy(wf):
     
     # create a birch model 
     # can be moved to within the for loop to initialize for each knob , threshold = 1
+    wandb.init(project='rtx-clustering-runs', name="Second Run")
     birchModel = Birch(n_clusters=None)
 
     # saves the windows of data in order to save the data while switching knobs
@@ -44,4 +46,4 @@ def start_clustering_strategy(wf):
     n_clusters = plot_silhouette_scores(birchModel, 3, test_data)
     run_model(birchModel, n_clusters, test_data)
 
-
+    wandb.save("dynamic_car_number_change1.h5")

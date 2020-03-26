@@ -5,24 +5,29 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_results": 0,
-    "sample_size": 250,
-    "window_size": 250,
+    "sample_size": 2000,
+    "window_size": 750,
     "type": "clustering",
     "knobs": [
-        {"total_car_counter": 100},
-        {"total_car_counter": 200},
-        # {"total_car_counter": 300},
-        # {"total_car_counter": 400},
-        # {"total_car_counter": 500},
-        # {"total_car_counter": 600},
-        # {"total_car_counter": 700},
-        # {"total_car_counter": 100},
-        # {"total_car_counter": 200},
-        # {"total_car_counter": 300},
-        # {"total_car_counter": 400},
-        # {"total_car_counter": 500},
-        # {"total_car_counter": 600},
-        # {"total_car_counter": 700},
+        {'z': 1},
+        {'z': 2},
+        {'z': 3},
+        {'z': 4},
+        {'z': 5},
+        {'z': 6},
+        {'z': 7},
+        {'z': 8},
+        {'z': 9},
+        {'z': 10},
+        {'z': 11},
+        {'z': 12},
+        # {'z': 1},
+        # {'z': 2},
+        # {'z': 3},
+        # {'z': 4},
+        # {'z': 5},
+        # {'z': 6},
+
     ]
 }
 
@@ -32,12 +37,11 @@ def primary_data_reducer(state, newData, wf, temp_array):
     overhead = temp_array[-1]
     state['carCount'] = newData['carNumber']
     state["overhead"] = overhead
-    state['avg_overhead'] = np.average(temp_array)
+    # state['avg_overhead'] = np.average(temp_array)
     state['std_overhead'] = np.std(temp_array)
     state['var_overhead'] = np.var(temp_array)
-    # state["moving_avg_overhead"] = (state["avg_overhead"] * cnt + overhead) / (cnt + 1) # moving average
     state['median_overhead'] = np.median(temp_array)
-    state['q1_overhead'] = np.quantile(temp_array, .25)
+    # state['q1_overhead'] = np.quantile(temp_array, .25)
     state['q2_overhead'] = np.quantile(temp_array, .75)
     # state["count"] = cnt + 1
     return state
@@ -60,20 +64,19 @@ change_provider = {
 
 # 3 this can be clustering can print that
 # TODO: figure out what the evaluator has to be
-def evaluator(resultState, wf):
+def evaluator(model):
 
-    return resultState['overhead']
+    return len(model.subcluster_labels_)
 
 
 def state_initializer(state, wf):
     state['carCount'] = 0
     state["overhead"] = 0
-    state['avg_overhead'] = 0
+    # state['avg_overhead'] = 0
     state['std_overhead'] = 0   
     state['var_overhead'] = 0
-    # state["moving_avg_overhead"] = 0
     state['median_overhead'] = 0
-    state['q1_overhead'] = 0
+    # state['q1_overhead'] = 0
     state['q2_overhead'] = 0
     # state["count"] = 0
     return state

@@ -5,6 +5,8 @@ from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
 
 import wandb
 
@@ -108,7 +110,7 @@ def experimentFunction(wf, exp):
     # return the result value of the evaluator
     return result
 
-def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
+def clusteringExperimentFunction(birchModel, window_overhead, number_of_submodels_trained, wf, exp):
     """ executes the online clustering experiment """
     start_time = current_milli_time()
     # remove all old data from the queues
@@ -150,7 +152,7 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     window = exp['window_size']
     
     # helper variable, introduced so that the model doesn't have to cluser each state seprarately
-    chunk_size_for_clustering = 50
+    chunk_size_for_clustering = 400
     # where the 50 states are stored to be patrially fitted to the model later        
     data_gathering_place = []
     
@@ -158,7 +160,8 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     to_add = []
     # for data analysis we can print to a file
     # to_print = []
-    
+    # pca = PCA(n_components=2)
+
     i = 0
     try:
         while i < sample_size:
@@ -200,9 +203,26 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
 
                 # patrially fit the model with each chunk of data saved in data_gathering_place
                 if len(data_gathering_place) == chunk_size_for_clustering:
-                    cpy = np.array(data_gathering_place)
-                    birchModel.partial_fit(cpy)
+                    # cpy = np.array(data_gathering_place)
+                    # TODO: 1. scaler, pca
+                    # scaler = StandardScaler()
+                    # scaled_data = StandardScaler().fit_transform(cpy)
+                    # principalComponents = pca.fit_transform(scaled_data)
+                    
+                    # Partal fit
+                    birchModel.partial_fit(np.array(data_gathering_place))
                     data_gathering_place = []
+
+                    # PCA for test data 
+                    # copy_to_add = np.array(to_add)
+                    # scaled_test_data = StandardScaler().fit_transform(copy_to_add)
+                    # test_principalComponents = pca.fit_transform(scaled_test_data)
+                    
+                    # Chekcing partial fit 
+                    n = plot_silhouette_scores(birchModel, np.array(to_add), 2, 10, ('partial_fit_' + str(number_of_submodels_trained)))
+                    model_cpy = birchModel
+                    run_model(model_cpy, n, np.array(to_add), ('partial_fit_' + str(number_of_submodels_trained)))
+                    number_of_submodels_trained += 1
                 
                 # gather data from each knob to return it to the clustering model
 
@@ -230,10 +250,15 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     # import json
     # with open('2ksamplex12.txt', 'a+') as file1:
     #     file1.write(json.dumps(to_print))
-
     print(exp['knobs'].values())
-    wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
+    # copy_to_add = np.array(to_add)
+    # scaled_test_data = StandardScaler().fit_transform(copy_to_add)
+    # test_principalComponents = pca.fit_transform(scaled_test_data)
 
+    n = plot_silhouette_scores(birchModel, np.array(to_add), 3, 10, ('global_fit_' + str(number_of_submodels_trained)))
+    run_model(birchModel, n, np.array(to_add), ('global_fit_' + str(list(exp['knobs'].values())[0])))
+    wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
+    
     try:
         result = wf.evaluator(birchModel)
     except:
@@ -259,24 +284,24 @@ def clusteringExperimentFunction(birchModel, window_overhead, wf, exp):
     # return the result value of the evaluator (which was returned before I started changing code)
     # as well as window_overhead (the current window of data to pass to the next knob iteration)
     # and to_add (with number of states for predicting in the clustering strategy)
-    return result, window_overhead, to_add
+    return result, window_overhead, to_add, number_of_submodels_trained
 
-def plot_silhouette_scores(model, test_data):
+
+def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, save_graph_name):
     """ Plot silhouette scores and return the best number of clusters"""
     silhouette_scores = [] # store scores for each number of clusters 
-
-    n_clusters_model = len(model.subcluster_labels_) # check the current number of clusters of the model
-
     # if statement only needed if the sample size is too small (when debugging)
-    if n_clusters_model > 2:
+    
+    if len(model.subcluster_labels_) > 2:
         # clusters_range = range(initial_clusters_number, (n_clusters_model+1))
-        clusters_range = range(2, 20)
+        clusters_range = range(n_clusters_min, n_clusters_max)
         results_dict = []
         # print(clusters_range)
         for number in clusters_range:
             # make a copy of the model so as not to mess up the 'correct' model
             model_cpy = model
             model_cpy.set_params(n_clusters=number)
+
             model_cpy.partial_fit()
             labels = model_cpy.predict(test_data)
             # print(labels)
@@ -284,28 +309,26 @@ def plot_silhouette_scores(model, test_data):
                 s = metrics.silhouette_score(test_data, labels, metric='euclidean')
                 silhouette_scores.append(s)
                 results_dict.append((number, s))
-                wandb.log({'score': s}, step=number)
             except ValueError:
-                print('impossible to check silhouette score for ' + str(number) + ' number of clusters')
-            # print(s)
+                # print('impossible to check silhouette score for ' + str(number) + ' number of clusters')
+                pass
 
-        # clusters_number = len(clusters_range)
         silhouette_range = [i[0] for i in results_dict]  
         plt.plot(silhouette_range[:], silhouette_scores[:])
         plt.xlabel('Number Of Clusers')
         plt.ylabel('Silhouette Score')
-        # plt.savefig('./results/silhouette_score_in_range_'+ str(silhouette_range) +'.png')
-        plt.show()
+        plt.savefig('./graphs/first_pca/silhouette'+ save_graph_name +'.png')
+        # plt.show()
         plt.close() 
         max_score = max(silhouette_scores)
         for i in results_dict:
             if i[1] == max_score:
-                print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
+                # print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
                 return int(i[0])
     else:
-        return 3
+        return n_clusters_min
     
-def run_model(model, n_clusters, test_data):
+def run_model(model, n_clusters, test_data, model_name):
 
     # for the final fit of data, set the number of clusters
 
@@ -313,18 +336,20 @@ def run_model(model, n_clusters, test_data):
     model.partial_fit()
     # run predict to check the labels and for plotting later
     labels = model.predict(test_data)
-    print(len(np.unique(np.array(labels))))
+    # print(len(np.unique(np.array(labels))))
     cluster_labels = labels
 
-    wandb.sklearn.plot_clusterer(model, test_data, cluster_labels, labels=None, model_name='var,med,07,std')
+    wandb.sklearn.plot_clusterer(model, test_data, cluster_labels, labels=None, model_name=model_name)
     
     # print(len(model.subcluster_centers_))
 
     plt.scatter(test_data[:,0], test_data[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead')
-    plt.xlabel('Number of Cars')
-    # plt.savefig(folder + 'fiure_' + experiment_name +'.png')
-    plt.show()
+    plt.ylabel('09Quantile')
+    plt.xlabel('Variance')
+    # plt.ylabel('PCA_1')
+    # plt.xlabel('PCA_2')
+    plt.savefig('./graphs/first_pca/'+ model_name +'.png')
+    # plt.show()
     plt.close()
     
     # import pickle

@@ -5,8 +5,8 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_results": 0,
-    "sample_size": 2000,
-    "window_size": 750,
+    "sample_size": 4000,
+    "window_size": 400,
     "type": "clustering",
     "knobs": [
         {'z': 1},
@@ -14,20 +14,13 @@ execution_strategy = {
         {'z': 3},
         {'z': 4},
         {'z': 5},
-        {'z': 6},
-        {'z': 7},
-        {'z': 8},
-        {'z': 9},
-        {'z': 10},
-        {'z': 11},
-        {'z': 12},
-        # {'z': 1},
-        # {'z': 2},
-        # {'z': 3},
-        # {'z': 4},
-        # {'z': 5},
         # {'z': 6},
-
+        # {'z': 7},
+        # {'z': 8},
+        # {'z': 9},
+        # {'z': 10},
+        # {'z': 11},
+        # {'z': 12},
     ]
 }
 
@@ -35,14 +28,15 @@ execution_strategy = {
 def primary_data_reducer(state, newData, wf, temp_array):
     # cnt = state["count"]
     overhead = temp_array[-1]
-    state['carCount'] = newData['carNumber']
-    state["overhead"] = overhead
+    # state['carCount'] = newData['carNumber']
+    # state["overhead"] = overhead
     # state['avg_overhead'] = np.average(temp_array)
-    state['std_overhead'] = np.std(temp_array)
+    # state['std_overhead'] = np.std(temp_array)
     state['var_overhead'] = np.var(temp_array)
-    state['median_overhead'] = np.median(temp_array)
+    # state['median_overhead'] = np.median(temp_array)
     # state['q1_overhead'] = np.quantile(temp_array, .25)
-    state['q2_overhead'] = np.quantile(temp_array, .75)
+    # state['q2_overhead'] = np.quantile(temp_array, .75)
+    state['09_overhead'] = np.quantile(temp_array, .90)
     # state["count"] = cnt + 1
     return state
 
@@ -70,13 +64,14 @@ def evaluator(model):
 
 
 def state_initializer(state, wf):
-    state['carCount'] = 0
-    state["overhead"] = 0
+    # state['carCount'] = 0
+    # state["overhead"] = 0
     # state['avg_overhead'] = 0
-    state['std_overhead'] = 0   
+    # state['std_overhead'] = 0   
     state['var_overhead'] = 0
-    state['median_overhead'] = 0
+    # state['median_overhead'] = 0
     # state['q1_overhead'] = 0
-    state['q2_overhead'] = 0
+    # state['q2_overhead'] = 0
+    state['09_overhead'] = 0
     # state["count"] = 0
     return state

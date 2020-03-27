@@ -18,3 +18,4 @@ examples/**/results.csv
 *.txt
 wandb/
 models/
+graphs/

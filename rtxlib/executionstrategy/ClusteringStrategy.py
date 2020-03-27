@@ -21,7 +21,7 @@ def start_clustering_strategy(wf):
     
     # create a birch model 
     # can be moved to within the for loop to initialize for each knob , threshold = 1
-    wandb.init(project='rtx-clustering-runs', name="Second Run")
+    wandb.init(project='rtx-clustering', name="Two Features Run")
     birchModel = Birch(n_clusters=None)
 
     # saves the windows of data in order to save the data while switching knobs
@@ -30,8 +30,10 @@ def start_clustering_strategy(wf):
     # data to predict on, made from data from differnt knobs
     data_to_test = []
 
+    number_of_submodels_trained = 1
+
     for kn in wf.execution_strategy["knobs"]:
-        result, window_overhead, to_add = clusteringExperimentFunction(birchModel, window_overhead, wf, {
+        result, window_overhead, to_add, number_of_submodels_trained = clusteringExperimentFunction(birchModel, window_overhead, number_of_submodels_trained, wf, {
             "knobs":kn,
             # "knobs": {"forever": True},
             "ignore_first_n_results": wf.execution_strategy["ignore_first_n_results"],
@@ -43,7 +45,7 @@ def start_clustering_strategy(wf):
     test_data = np.array(data_to_test)
     
     # get silhouette scores using test set
-    n_clusters = plot_silhouette_scores(birchModel, test_data)
-    run_model(birchModel, n_clusters, test_data)
+    n_clusters = plot_silhouette_scores(birchModel, test_data,  2, 10, 'final_global')
+    run_model(birchModel, n_clusters, test_data, 'final_global_fit')
 
-    wandb.save("dynamic_car_number_change1.h5")
+    # wandb.save("dynamic_car_number_change1.h5")

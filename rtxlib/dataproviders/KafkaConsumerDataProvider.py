@@ -78,3 +78,9 @@ class KafkaConsumerDataProvider(DataProvider):
             return values
         except StopIteration:
             return None
+        # try:
+        #     return next(self.consumer).value
+        # except StopIteration:
+        #     inline_print(
+        #         Fore.RED + "> WARNING - No message present within three seconds                          " + Fore.RESET)
+        #     return None

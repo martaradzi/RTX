@@ -6,14 +6,14 @@ name = "CrowdNav-BirchClustering"
 execution_strategy = {
     "ignore_first_n_results": 0,
     "sample_size": 4000,
-    "window_size": 400,
+    "window_size": 1000,
     "type": "clustering",
     "knobs": [
         {'z': 1},
-        {'z': 2},
-        {'z': 3},
-        {'z': 4},
-        {'z': 5},
+        # {'z': 2},
+        # {'z': 3},
+        # {'z': 4},
+        # {'z': 5},
         # {'z': 6},
         # {'z': 7},
         # {'z': 8},
@@ -25,9 +25,10 @@ execution_strategy = {
 }
 
 # 2 gather data
-def primary_data_reducer(state, newData, wf, temp_array):
+
+def secondary_data_reducer(state, wf, temp_array):
     # cnt = state["count"]
-    overhead = temp_array[-1]
+    # overhead = temp_array[-1]
     # state['carCount'] = newData['carNumber']
     # state["overhead"] = overhead
     # state['avg_overhead'] = np.average(temp_array)
@@ -40,13 +41,26 @@ def primary_data_reducer(state, newData, wf, temp_array):
     # state["count"] = cnt + 1
     return state
 
+def primary_data_reducer(state, newData, wf):
+    cnt = state['tick']
+    state['tick'] = newData['tick'] + cnt
+    return state
 
-primary_data_provider = {
+
+secondary_data_providers = [{
     "type": "kafka_consumer",
-    "kafka_uri": "localhost:9092", # this was changed
+    "kafka_uri": "localhost:9092",
     "topic": "crowd-nav-trips",
     "serializer": "JSON",
     "data_reducer": primary_data_reducer
+}]
+
+primary_data_provider = {
+    "type": "kafka_consumer",
+    "kafka_uri": "localhost:9092", 
+    "topic": "crowd-nav-ticks",
+    "serializer": "JSON",
+    "data_reducer": secondary_data_reducer
 }
 
 change_provider = {
@@ -56,14 +70,14 @@ change_provider = {
     "serializer": "JSON",
 }
 
-# 3 this can be clustering can print that
-# TODO: figure out what the evaluator has to be
+
 def evaluator(model):
 
     return len(model.subcluster_labels_)
 
 
 def state_initializer(state, wf):
+    # state['tick'] = 0
     # state['carCount'] = 0
     # state["overhead"] = 0
     # state['avg_overhead'] = 0

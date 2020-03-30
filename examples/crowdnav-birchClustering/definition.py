@@ -5,7 +5,7 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_results": 0,
-    "sample_size": 4000,
+    "sample_size": 24000,
     "window_size": 1000,
     "type": "clustering",
     "knobs": [
@@ -13,14 +13,6 @@ execution_strategy = {
         # {'z': 2},
         # {'z': 3},
         # {'z': 4},
-        # {'z': 5},
-        # {'z': 6},
-        # {'z': 7},
-        # {'z': 8},
-        # {'z': 9},
-        # {'z': 10},
-        # {'z': 11},
-        # {'z': 12},
     ]
 }
 
@@ -52,7 +44,7 @@ secondary_data_providers = [{
     "kafka_uri": "localhost:9092",
     "topic": "crowd-nav-trips",
     "serializer": "JSON",
-    "data_reducer": primary_data_reducer
+    "data_reducer": secondary_data_reducer
 }]
 
 primary_data_provider = {
@@ -60,7 +52,7 @@ primary_data_provider = {
     "kafka_uri": "localhost:9092", 
     "topic": "crowd-nav-ticks",
     "serializer": "JSON",
-    "data_reducer": secondary_data_reducer
+    "data_reducer": primary_data_reducer
 }
 
 change_provider = {

@@ -151,44 +151,26 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     array_overheads= [] # this variable stores the overhead data for a specific size 
     # window = exp['window_size']
     
-    # helper variable, introduced so that the model doesn't have to cluser each state seprarately       
     variance_and_percentile_array = []
     check_for_printing = []
 
-    # variable to store a certain amount of samples from each knob to later predict on
-    # to_add = []
-    # for data analysis we can print to a file
-    # to_print = []
     i = 0
     try:
         # tick_simulation_begun_at = 'blah'
         while i < (sample_size+1):
             new_tick = wf. primary_data_provider['instance'].returnData()
-            print(list(new_tick.values())[0])
+            # print(list(new_tick.values())[0])
             if new_tick is not None:
-                # try:
-                #     # exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], new_tick, wf)
-                    
-                #     print(exp['state'])
-                # except StopIteration:
-                #     raise StopIteration()  # just fwd
-                # except RuntimeError:
-                #     raise RuntimeError()  # just fwd
-                # except:
-                #     error("could not reducing data set: " + str(new_tick))
-
                 # ADD TO THE OVERHEAD ARRAY
                 if hasattr(wf, "secondary_data_providers"):
                     for cp in wf.secondary_data_providers:
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                # exp["state"] = cp["data_reducer"](exp["state"], nd,wf)
-                                # array_overheads.append(np.array(list(exp["state"].values())))
-                                print('new data')
+                                # print('new data')
                                 # print(nd)
                                 array_overheads.append(nd['overhead'])
-                                print(array_overheads)
+                                # print(array_overheads)
 
                             except StopIteration:
                                 raise StopIteration()  # just
@@ -196,43 +178,41 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                                 raise RuntimeError()  # just fwd
                             except:
                                 error("could not reducing data set: " + str(nd))
-                # print('data added')
-                # print(exp["state"])
 
                 i = list(new_tick.values())[0]
 
-                if i < 1000:
-                    # add to the counter
-                    # conutnue
-                    process("ticks \t| ", i, sample_size)
-                    continue
-
-                elif exp['state'].values() == 1000:
+                if i % 1000 == 0:
                     # CLALUCATE THE VARIANCE AND PERCENTILE 
                     # FORGET THE OVERHEAD ARRAY
 
                     # IF LEN THE VARIANCE ARRAY = 4 
                     # DO CLUSTERING 
-                    print('')
+                    # print('at 1000 ticks')
                     if hasattr(wf, "secondary_data_providers"):
                         for cp in wf.secondary_data_providers:
-                                # new_data = cp["instance"].returnDataListNonBlocking()
-                                # for nd in new_data:
                             try:
                                 exp["state"] = cp["data_reducer"](exp["state"], wf, array_overheads)
-                                variance_and_percentile_array.append(np.array(list(exp["state"].values())))
-                                array_overheads = []
+
                             except StopIteration:
                                 raise StopIteration()  # just
                             except RuntimeError:
                                 raise RuntimeError()  # just fwd
                             except:
                                 error("could not reducing data set: " + str(nd))
+                            
+                            variance_and_percentile_array.append(np.array(list(exp["state"].values())))
+                            check_for_printing.append(np.array(list(exp["state"].values())))
+                            # print(exp["state"])
+                            # print(variance_and_percentile_array)
+                            array_overheads = []
+                            # print(array_overheads)
 
                     
                     if len(variance_and_percentile_array) == 4:
+                        print('trying to train model')
                         numpy_array = np.array(variance_and_percentile_array)
                         birchModel.partial_fit(numpy_array)
+                        print('model trained')
                         model_cpy = birchModel
                         n = plot_silhouette_scores(birchModel, numpy_array, 2, 10, ('partial_fit_' + str(number_of_submodels_trained)))
                         run_model(model_cpy, n, numpy_array, ('partial_fit_' + str(number_of_submodels_trained)))
@@ -240,75 +220,8 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                         variance_and_percentile_array = []
 
 
-                else:
-                    print('doesnt work for shit')
-
-                # i = exp['state']['tick'].values()
                 process("ticks \t| ", i, sample_size)
 
-
-
-
-        #     tick_number = 'current_tick_number' + tick_simulation_begun_at
-            
-        #     new_tick_data = wf.primary_data_provider["instance"].returnData()
-            
-        #     if new_data is not None:
-
-        #         if tick_number % 1000 != 0:
-        #             window_overhead.append(new_data['overhead'])
-        #             continue
-
-        #         window_overhead.append(new_data['overhead'])
-        #         try:
-        #             exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], wf, window_overhead)
-        #         except StopIteration:
-        #             raise StopIteration()  # just fwd
-        #         except RuntimeError:
-        #             raise RuntimeError()  # just fwd
-        #         except:
-        #             error("could not reducing data set: " + str(new_data))
-                
-        #         # gather states of simulation
-        #         data_gathering_place.append(np.array(list(exp["state"].values())))
-        #         check_for_printing.append(np.array(list(exp["state"].values())))
-        #         window_overhead = []
-            
-        #         # patrially fit the model with each chunk of data saved in data_gathering_place
-        #         if len(data_gathering_place) == 4:
-
-        #             numpy_array = np.array(data_gathering_place)
-        #             # Partal fit
-        #             birchModel.partial_fit(numpy_array)
-                    
-        #             # Chekcing partial fit 
-        #             # n = plot_silhouette_scores(birchModel, np.array(check_for_printing), 2, 10, ('partial_fit_' + str(number_of_submodels_trained)))
-        #             n = plot_silhouette_scores(birchModel, numpy_array, 2, 10, ('partial_fit_' + str(number_of_submodels_trained)))
-
-        #             model_cpy = birchModel
-        #             # run_model(model_cpy, n, np.array(check_for_printing), ('partial_fit_' + str(number_of_submodels_trained)))
-        #             run_model(model_cpy, n, numpy_array, ('partial_fit_' + str(number_of_submodels_trained)))
-        #             number_of_submodels_trained += 1
-        #             data_gathering_place = []
-                
-        #         # gather data from each knob to return it to the clustering model
-
-        #         i += 1
-        #         process("CollectSamples \t| ", i, sample_size)
-                    
-        #         # now we use returnDataListNonBlocking on all secondary data providers
-        #         if hasattr(wf, "secondary_data_providers"):
-        #             for cp in wf.secondary_data_providers:
-        #                 new_data = cp["instance"].returnDataListNonBlocking()
-        #                 for nd in new_data:
-        #                     try:
-        #                         exp["state"] = cp["data_reducer"](exp["state"], nd,wf)
-        #                     except StopIteration:
-        #                         raise StopIteration()  # just
-        #                     except RuntimeError:
-        #                         raise RuntimeError()  # just fwd
-        #                     except:
-        #                         error("could not reducing data set: " + str(nd))
         print("")
     except StopIteration:
         # this iteration should stop asap
@@ -320,8 +233,8 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     # print(exp['knobs'].values())
     # test_principalComponents = pca.fit_transform(scaled_test_data)
 
-    # n = plot_silhouette_scores(birchModel, np.array(to_add), 3, 10, ('global_fit_' + str(number_of_submodels_trained)))
-    # run_model(birchModel, n, np.array(to_add), ('global_fit_' + str(list(exp['knobs'].values())[0])))
+    n = plot_silhouette_scores(birchModel, np.array(check_for_printing), 3, 10, ('global_fit_' + str(number_of_submodels_trained)))
+    run_model(birchModel, n, np.array(check_for_printing), ('global_fit_' + str(list(exp['knobs'].values())[0])))
     # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
     
     try:

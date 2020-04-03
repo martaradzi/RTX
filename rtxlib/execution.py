@@ -7,6 +7,7 @@ from sklearn import metrics
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+import types
 
 # import wandb
 
@@ -149,9 +150,9 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     sample_size = exp["sample_size"]
 
     array_overheads= [] # this variable stores the overhead data for a specific size 
-    # window = exp['window_size']
+    window_size = exp['window_size']
     
-    variance_and_percentile_array = []
+    partial_fit_array = []
     check_for_printing = []
 
     i = 0
@@ -159,7 +160,6 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
         # tick_simulation_begun_at = 'blah'
         while i < (sample_size+1):
             new_tick = wf. primary_data_provider['instance'].returnData()
-            # print(list(new_tick.values())[0])
             if new_tick is not None:
                 # ADD TO THE OVERHEAD ARRAY
                 if hasattr(wf, "secondary_data_providers"):
@@ -167,11 +167,8 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                # print('new data')
-                                # print(nd)
-                                array_overheads.append(nd['overhead'])
+                                array_overheads.append({'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead']})
                                 # print(array_overheads)
-
                             except StopIteration:
                                 raise StopIteration()  # just
                             except RuntimeError:
@@ -181,44 +178,52 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
 
                 i = list(new_tick.values())[0]
 
-                if i % 1000 == 0:
-                    # CLALUCATE THE VARIANCE AND PERCENTILE 
-                    # FORGET THE OVERHEAD ARRAY
-
-                    # IF LEN THE VARIANCE ARRAY = 4 
-                    # DO CLUSTERING 
-                    # print('at 1000 ticks')
+                if i % window_size == 0:
                     if hasattr(wf, "secondary_data_providers"):
                         for cp in wf.secondary_data_providers:
                             try:
                                 exp["state"] = cp["data_reducer"](exp["state"], wf, array_overheads)
+                                partial_fit_array.append(np.array([
+                                    exp["state"]['avg_overhead'],\
+                                    exp["state"]['std_overhead'], \
+                                    exp["state"]['var_overhead'], \
+                                    exp["state"]['median_overhead'], \
+                                    exp["state"]['q1_overhead'], \
+                                    exp['state']['q3_overhead'], \
+                                    exp["state"]['p9_overhead']
+                                    ]))
 
+
+                                check = {'totalCarNumber': exp["state"]['totalCarNumber'], \
+                                    'avg_overhead': exp["state"]['avg_overhead'], \
+                                    'std_overhead':  exp["state"]['std_overhead'], \
+                                    'var_overhead': exp["state"]['var_overhead'], \
+                                    'median_overhead': exp["state"]['median_overhead'], \
+                                    'q1_overhead': exp["state"]['q1_overhead'], \
+                                    'q3_overhead': exp["state"]['q3_overhead'], \
+                                    'p9_overhead': exp["state"]['p9_overhead']}
+                             
+                                check_for_printing.append(check)
+                                # print(check_for_printing)
+                                array_overheads = []
+                                # print(exp['state'])
                             except StopIteration:
                                 raise StopIteration()  # just
                             except RuntimeError:
                                 raise RuntimeError()  # just fwd
                             except:
                                 error("could not reducing data set: " + str(nd))
-                            
-                            variance_and_percentile_array.append(np.array(list(exp["state"].values())))
-                            check_for_printing.append(np.array(list(exp["state"].values())))
-                            # print(exp["state"])
-                            # print(variance_and_percentile_array)
-                            array_overheads = []
-                            # print(array_overheads)
+                            # print(exp['state']) 
+                    if len(partial_fit_array) == 4:
 
-                    
-                    if len(variance_and_percentile_array) == 4:
-                        print('trying to train model')
-                        numpy_array = np.array(variance_and_percentile_array)
+                        numpy_array = np.array(partial_fit_array)
                         birchModel.partial_fit(numpy_array)
-                        print('model trained')
-                        model_cpy = birchModel
-                        n = plot_silhouette_scores(birchModel, numpy_array, 2, 10, ('partial_fit_' + str(number_of_submodels_trained)))
-                        run_model(model_cpy, n, numpy_array, ('partial_fit_' + str(number_of_submodels_trained)))
                         number_of_submodels_trained += 1
-                        variance_and_percentile_array = []
+                        partial_fit_array = []
 
+                    # if number_of_submodels_trained % 20 == 0 and number_of_submodels_trained != 0:
+                        # n = plot_silhouette_scores(birchModel, check_for_printing, 3, 10, ('global_fit_' + str(number_of_submodels_trained)))
+                        # run_model(birchModel, check_for_printing, (str(number_of_submodels_trained)) + 'global_fit_')
 
                 process("ticks \t| ", i, sample_size)
 
@@ -232,9 +237,8 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     #     file1.write(json.dumps(to_print))
     # print(exp['knobs'].values())
     # test_principalComponents = pca.fit_transform(scaled_test_data)
-
-    n = plot_silhouette_scores(birchModel, np.array(check_for_printing), 3, 10, ('global_fit_' + str(number_of_submodels_trained)))
-    run_model(birchModel, n, np.array(check_for_printing), ('global_fit_' + str(list(exp['knobs'].values())[0])))
+    # if number_of_submodels_trained % 10 != 0:
+    run_model(birchModel, check_for_printing, ('global_fit_' + str(list(exp['knobs'].values())[0])))
     # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
     
     try:
@@ -259,19 +263,16 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     # log the result values into a csv file
     log_results(wf.folder, list(exp["knobs"].values()) + [result])
     
-    # return the result value of the evaluator (which was returned before I started changing code)
-    # as well as window_overhead (the current window of data to pass to the next knob iteration)
-    # and to_add (with number of states for predicting in the clustering strategy)
     return result, number_of_submodels_trained
 
-def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, save_graph_name):
+def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, folder, save_graph_name):
     """ Plot silhouette scores and return the best number of clusters"""
-    silhouette_scores = [] # store scores for each number of clusters 
-    # if statement only needed if the sample size is too small (when debugging)
-    
+
     if len(model.subcluster_labels_) > 2:
-        # clusters_range = range(initial_clusters_number, (n_clusters_model+1))
-        clusters_range = range(n_clusters_min, n_clusters_max)
+
+        silhouette_scores = []
+
+        clusters_range = range(n_clusters_min, n_clusters_max+1)
         results_dict = []
         # print(clusters_range)
         for number in clusters_range:
@@ -287,47 +288,161 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, sav
                 silhouette_scores.append(s)
                 results_dict.append((number, s))
             except ValueError:
-                # print('impossible to check silhouette score for ' + str(number) + ' number of clusters')
                 pass
 
         silhouette_range = [i[0] for i in results_dict]  
         plt.plot(silhouette_range[:], silhouette_scores[:])
         plt.xlabel('Number Of Clusers')
         plt.ylabel('Silhouette Score')
-        plt.savefig('./graphs/ticks_experiment/silhouette'+ save_graph_name +'.png')
+        plt.savefig(folder + 'silhouette_'+ save_graph_name +'.png')
         # plt.show()
         plt.close() 
         max_score = max(silhouette_scores)
         for i in results_dict:
             if i[1] == max_score:
-                # print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
+                print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
                 return int(i[0])
     else:
+        print('couldnt get the scores, plz help')
+        print('returning number of clusters = ' + str(n_clusters_min))
         return n_clusters_min
     
-def run_model(model, n_clusters, test_data, model_name):
+def run_model(model,test_data, model_name):
 
-    # for the final fit of data, set the number of clusters
+    data_to_fit = transfrom_to_nparray(test_data, [
+        'avg_overhead', \
+        'std_overhead', \
+        'var_overhead', \
+        'median_overhead', \
+        'q1_overhead', \
+        'q3_overhead', \
+        'p9_overhead'
+        ])
 
+    # data_to_work = transfrom_to_nparray(test_data, ['median_overhead'])
+    # data_to_fit = data_to_work.reshape(-1, 1)
+
+
+    folder = './graphs/experiment10/'
+
+    # n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
+    n_clusters = 10
     model.set_params(n_clusters = n_clusters)
     model.partial_fit()
-    # run predict to check the labels and for plotting later
-    labels = model.predict(test_data)
-    # print(len(np.unique(np.array(labels))))
-    # cluster_labels = labels
-
-    # wandb.sklearn.plot_clusterer(model, test_data, cluster_labels, labels=None, model_name=model_name)
     
-    print(model.subcluster_centers_)
+    labels = model.predict(data_to_fit)
 
-    plt.scatter(test_data[:,0], test_data[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('09Quantile')
-    plt.xlabel('Variance')
-    # plt.ylabel('PCA_1')
-    # plt.xlabel('PCA_2')
-    plt.savefig('./graphs/ticks_experiment/'+ model_name +'.png')
+    l = len(labels)
+    for index in range(l):
+        test_data[index].update({'label': labels[index]})
+
+    new_array = transfrom_to_nparray(test_data, ['totalCarNumber', \
+        'avg_overhead', \
+        'std_overhead', \
+        'var_overhead', \
+        'median_overhead', \
+        'q1_overhead', \
+        'q3_overhead', \
+        'p9_overhead', \
+        'label'])
+
+
+    #####################################   PLOTING PART    #######################################
+    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: average')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSavg.png')
     # plt.show()
     plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: STD')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSstd.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Var')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSvar.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Median')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSmedian.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 1st Quartile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSq1.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 3rd Quartile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSq3.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,7], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 90th Percentile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSp90.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Variance')
+    plt.xlabel('Overhead: Average')
+    plt.savefig(folder + model_name +'_varVS90th.png')
+    # plt.show()
+    plt.close()
+        
+    plt.scatter(new_array[:,5], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 3rd Quartile')
+    plt.xlabel('Overhead: 1st Quartile')
+    plt.savefig(folder + model_name +'_1stVS3rd.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,4], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: STD')
+    plt.xlabel('Overhead: Median')
+    plt.savefig(folder + model_name +'_medianVSstd.png')
+    # plt.show()
+    plt.close()
+
+    # plt.scatter(new_array[:,1], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: Median')
+    # plt.xlabel('Overhead: Average')
+    # plt.savefig(folder + model_name +'_medianVSavg.png')
+    # # plt.show()
+    # plt.close()
+
+    # from mpl_toolkits.mplot3d import Axes3D
+    # fig = plt.figure(figsize=(15,10))
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.scatter(new_array[:,1], new_array[:,0], new_array[:,2], c=new_array[:,3], cmap='rainbow', alpha=0.8, edgecolors='b')
+    # ax.set_xlabel('Average')
+    # ax.set_ylabel('cars')
+    # ax.set_zlabel('Median')
+    # fig.savefig(folder + model_name + '3D.png')
+
+    # big_list = []
+    # for label in np.unique(np.array(labels)):
+    #     small_list = []
+    #     for d in test_data:
+    #         if d['label'] == label:
+    #             small_list.append(d['totalCarNumber'])
+    #     x = np.array(small_list) 
+    #     x = np.unique(x)
+    #     big_list.append(x.tolist())
     
     # import pickle
     # import joblib
@@ -340,3 +455,15 @@ def run_model(model, n_clusters, test_data, model_name):
     #     file1.write(str(model.subcluster_centers_))
     # file1.close()
 
+
+def transfrom_to_nparray(data, feature_array):
+    """ Transform the gathered data to numpy array to fit the model's requirements """
+    transformed_data = []
+    for row in data:
+        t = ()
+        for k, v in row.items():
+            if k in feature_array:
+                t = t + (v,)
+        transformed_data.append(t)
+    transformed_data = np.array(transformed_data)
+    return transformed_data

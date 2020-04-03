@@ -18,4 +18,4 @@ examples/**/results.csv
 *.txt
 wandb/
 models/
-graphs/
+weird_runs_resutls/

@@ -31,7 +31,7 @@ def start_clustering_strategy(wf):
     # data_to_test = []
     check_for_printing = []
 
-    number_of_submodels_trained = 1
+    number_of_submodels_trained = 0
 
     for kn in wf.execution_strategy["knobs"]:
         result, number_of_submodels_trained = clusteringExperimentFunction(birchModel,number_of_submodels_trained, check_for_printing,wf, {
@@ -39,7 +39,7 @@ def start_clustering_strategy(wf):
             # "knobs": {"forever": True},
             "ignore_first_n_results": wf.execution_strategy["ignore_first_n_results"],
             "sample_size": wf.execution_strategy["sample_size"],
-            "window_size": wf.execution_strategy['window_size']
+            "window_size": wf.execution_strategy['window_size_for_car_number_change']
         })
         # data_to_test += to_add
 

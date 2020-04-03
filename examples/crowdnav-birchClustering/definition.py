@@ -5,8 +5,8 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_results": 0,
-    "sample_size": 24000,
-    "window_size": 1000,
+    "sample_size": 80000,
+    "window_size_for_car_number_change": 1000,
     "type": "clustering",
     "knobs": [
         {'z': 1},
@@ -16,26 +16,22 @@ execution_strategy = {
     ]
 }
 
-# 2 gather data
-
-def secondary_data_reducer(state, wf, temp_array):
+def secondary_data_reducer(state, wf, temp_dict):
     # cnt = state["count"]
     # overhead = temp_array[-1]
-    # state['carCount'] = newData['carNumber']
-    # state["overhead"] = overhead
-    # state['avg_overhead'] = np.average(temp_array)
-    # state['std_overhead'] = np.std(temp_array)
-    state['var_overhead'] = np.var(temp_array)
-    # state['median_overhead'] = np.median(temp_array)
-    # state['q1_overhead'] = np.quantile(temp_array, .25)
-    # state['q2_overhead'] = np.quantile(temp_array, .75)
-    state['09_overhead'] = np.quantile(temp_array, .90)
+    state['totalCarNumber'] = int(np.median([d['totalCarNumber'] for d in temp_dict]))
+    state['avg_overhead'] = np.average([d['overhead'] for d in temp_dict])
+    state['std_overhead'] = np.std([d['overhead'] for d in temp_dict])
+    state['var_overhead'] = np.var([d['overhead'] for d in temp_dict])
+    state['median_overhead'] = np.median([d['overhead'] for d in temp_dict])
+    state['q1_overhead'] = np.quantile([d['overhead'] for d in temp_dict], .25)
+    state['q3_overhead'] = np.quantile([d['overhead'] for d in temp_dict], .75)
+    state['p9_overhead'] = (np.percentile([d['overhead'] for d in temp_dict], 90))
     # state["count"] = cnt + 1
     return state
 
 def primary_data_reducer(state, newData, wf):
-    cnt = state['tick']
-    state['tick'] = newData['tick'] + cnt
+    state['tick'] = newData['tick']
     return state
 
 
@@ -70,14 +66,14 @@ def evaluator(model):
 
 def state_initializer(state, wf):
     # state['tick'] = 0
-    # state['carCount'] = 0
+    state['totalCarNumber'] = 0
     # state["overhead"] = 0
-    # state['avg_overhead'] = 0
-    # state['std_overhead'] = 0   
+    state['avg_overhead'] = 0
+    state['std_overhead'] = 0   
     state['var_overhead'] = 0
-    # state['median_overhead'] = 0
-    # state['q1_overhead'] = 0
-    # state['q2_overhead'] = 0
-    state['09_overhead'] = 0
+    state['median_overhead'] = 0
+    state['q1_overhead'] = 0
+    state['q3_overhead'] = 0
+    state['p9_overhead'] = 0
     # state["count"] = 0
     return state

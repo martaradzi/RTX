@@ -7,8 +7,6 @@ from sklearn import metrics
 from sklearn.metrics import pairwise_distances
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-import types
-
 # import wandb
 
 def _defaultChangeProvider(variables,wf):
@@ -146,6 +144,8 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                 process("IgnoreSamples \t| ", i, to_ignore)
         print("")
 
+    test_model = Birch(n_clusters=None)
+
     # start collecting data
     sample_size = exp["sample_size"]
 
@@ -217,13 +217,15 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                     if len(partial_fit_array) == 4:
 
                         numpy_array = np.array(partial_fit_array)
+                        
                         birchModel.partial_fit(numpy_array)
+                        test_model.partial_fit(numpy_array)
+                        
                         number_of_submodels_trained += 1
                         partial_fit_array = []
 
-                    # if number_of_submodels_trained % 20 == 0 and number_of_submodels_trained != 0:
-                        # n = plot_silhouette_scores(birchModel, check_for_printing, 3, 10, ('global_fit_' + str(number_of_submodels_trained)))
-                        # run_model(birchModel, check_for_printing, (str(number_of_submodels_trained)) + 'global_fit_')
+                    if number_of_submodels_trained % 20 == 0 and number_of_submodels_trained != 0:
+                        run_model(test_model, check_for_printing, (str(number_of_submodels_trained)) + '_test_model_partial_fit_')
 
                 process("ticks \t| ", i, sample_size)
 
@@ -237,8 +239,11 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     #     file1.write(json.dumps(to_print))
     # print(exp['knobs'].values())
     # test_principalComponents = pca.fit_transform(scaled_test_data)
-    # if number_of_submodels_trained % 10 != 0:
+
     run_model(birchModel, check_for_printing, ('global_fit_' + str(list(exp['knobs'].values())[0])))
+
+    if number_of_submodels_trained % 20 != 0:
+        run_model(test_model, check_for_printing, ('_test_model_global_fit' + + str(list(exp['knobs'].values())[0])))
     # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
     
     try:
@@ -323,7 +328,7 @@ def run_model(model,test_data, model_name):
     # data_to_fit = data_to_work.reshape(-1, 1)
 
 
-    folder = './graphs/experiment10/'
+    folder = './graphs/experiment11/'
 
     # n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
     n_clusters = 10
@@ -348,7 +353,7 @@ def run_model(model,test_data, model_name):
 
 
     #####################################   PLOTING PART    #######################################
-    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')    
     plt.ylabel('Overhead: average')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSavg.png')

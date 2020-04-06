@@ -138,9 +138,9 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     if to_ignore > 0:
         i = 0
         while i < to_ignore:
-            new_data = wf.primary_data_provider["instance"].returnData()
-            if new_data is not None:
-                i += 1
+            new_tick = wf. primary_data_provider['instance'].returnData()
+            if new_tick is not None:
+                i = list(new_tick.values())[0]
                 process("IgnoreSamples \t| ", i, to_ignore)
         print("")
 
@@ -157,7 +157,7 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
 
     i = 0
     try:
-        # tick_simulation_begun_at = 'blah'
+
         while i < (sample_size+1):
             new_tick = wf. primary_data_provider['instance'].returnData()
             if new_tick is not None:
@@ -243,7 +243,7 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     run_model(birchModel, check_for_printing, ('global_fit_' + str(list(exp['knobs'].values())[0])))
 
     if number_of_submodels_trained % 20 != 0:
-        run_model(test_model, check_for_printing, ('_test_model_global_fit' + + str(list(exp['knobs'].values())[0])))
+        run_model(test_model, check_for_printing, ('_test_model_global_fit' + str(list(exp['knobs'].values())[0])))
     # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
     
     try:
@@ -311,7 +311,20 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
         print('couldnt get the scores, plz help')
         print('returning number of clusters = ' + str(n_clusters_min))
         return n_clusters_min
-    
+
+def transfrom_to_nparray(data, feature_array):
+    """ Transform the gathered data to numpy array to fit the model's requirements """
+    transformed_data = []
+    for row in data:
+        t = ()
+        for k, v in row.items():
+            if k in feature_array:
+                t = t + (v,)
+        transformed_data.append(t)
+    transformed_data = np.array(transformed_data)
+    return transformed_data
+
+
 def run_model(model,test_data, model_name):
 
     data_to_fit = transfrom_to_nparray(test_data, [
@@ -327,11 +340,11 @@ def run_model(model,test_data, model_name):
     # data_to_work = transfrom_to_nparray(test_data, ['median_overhead'])
     # data_to_fit = data_to_work.reshape(-1, 1)
 
-
     folder = './graphs/experiment11/'
 
-    # n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
-    n_clusters = 10
+    # not plotting scores, trying to figure out how to make the model cluster the number of cars
+    n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
+    # n_clusters = 10
     model.set_params(n_clusters = n_clusters)
     model.partial_fit()
     
@@ -461,14 +474,4 @@ def run_model(model,test_data, model_name):
     # file1.close()
 
 
-def transfrom_to_nparray(data, feature_array):
-    """ Transform the gathered data to numpy array to fit the model's requirements """
-    transformed_data = []
-    for row in data:
-        t = ()
-        for k, v in row.items():
-            if k in feature_array:
-                t = t + (v,)
-        transformed_data.append(t)
-    transformed_data = np.array(transformed_data)
-    return transformed_data
+

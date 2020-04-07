@@ -1,12 +1,15 @@
 from rtxlib import info, error, warn, direct_print, process, log_results, current_milli_time
+import os
 import numpy as np
 from sklearn.cluster import Birch
 from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
-from sklearn.preprocessing import StandardScaler
+# from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+import json
+
 # import wandb
 
 def _defaultChangeProvider(variables,wf):
@@ -144,14 +147,16 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                 process("IgnoreSamples \t| ", i, to_ignore)
         print("")
 
-    test_model = Birch(n_clusters=None)
+    save_in = exp['save_in']
+    folder = './graphs/' + save_in + '/'
+    os.makedirs(os.path.dirname(folder), exist_ok=True)
 
     # start collecting data
     sample_size = exp["sample_size"]
 
     array_overheads= [] # this variable stores the overhead data for a specific size 
     window_size = exp['window_size']
-    
+    partial_cluster_counter = exp['partial_clustering_size']
     partial_fit_array = []
     check_for_printing = []
 
@@ -193,7 +198,6 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                                     exp["state"]['p9_overhead']
                                     ]))
 
-
                                 check = {'totalCarNumber': exp["state"]['totalCarNumber'], \
                                     'avg_overhead': exp["state"]['avg_overhead'], \
                                     'std_overhead':  exp["state"]['std_overhead'], \
@@ -206,6 +210,7 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                                 check_for_printing.append(check)
                                 # print(check_for_printing)
                                 array_overheads = []
+                                check = []
                                 # print(exp['state'])
                             except StopIteration:
                                 raise StopIteration()  # just
@@ -214,18 +219,14 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                             except:
                                 error("could not reducing data set: " + str(nd))
                             # print(exp['state']) 
-                    if len(partial_fit_array) == 4:
+                    if len(partial_fit_array) == partial_cluster_counter:
 
                         numpy_array = np.array(partial_fit_array)
                         
                         birchModel.partial_fit(numpy_array)
-                        test_model.partial_fit(numpy_array)
                         
                         number_of_submodels_trained += 1
                         partial_fit_array = []
-
-                    if number_of_submodels_trained % 20 == 0 and number_of_submodels_trained != 0:
-                        run_model(test_model, check_for_printing, (str(number_of_submodels_trained)) + '_test_model_partial_fit_')
 
                 process("ticks \t| ", i, sample_size)
 
@@ -234,18 +235,28 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
         # this iteration should stop asap
         error("This experiment got stopped as requested by a StopIteration exception")
 
-    # import json
-    # with open('2ksamplex12.txt', 'a+') as file1:
-    #     file1.write(json.dumps(to_print))
     # print(exp['knobs'].values())
     # test_principalComponents = pca.fit_transform(scaled_test_data)
 
-    run_model(birchModel, check_for_printing, ('global_fit_' + str(list(exp['knobs'].values())[0])))
+    run_model(birchModel, check_for_printing, ('global_fit_' + str(list(exp['knobs'].values())[0])), folder)
 
-    if number_of_submodels_trained % 20 != 0:
-        run_model(test_model, check_for_printing, ('_test_model_global_fit' + str(list(exp['knobs'].values())[0])))
     # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
-    
+
+    with open(folder + 'experiment.txt', 'w+') as f:
+        f.write('The experiment run with the following attributes: \n')
+        f.write('Ignored results: ' + str(to_ignore) + '\n')
+        f.write('Sample size (in ticks): ' + str(sample_size) + '\n')
+        f.write('The number of cars chang (in ticks): ' +str(window_size) + '\n')
+        f.write('The partial cluster was performed on data of size: ' + str(partial_cluster_counter) + '\n\n')
+        
+        if 'pca' in globals():
+            f.write('PCA was performed\n\n')
+
+        f.write('Features the model trained on: \n')
+        for feat in list(check_for_printing[0].keys()):
+            f.write(str(feat) + '\n')
+    f.close()
+
     try:
         result = wf.evaluator(birchModel)
     except:
@@ -324,27 +335,23 @@ def transfrom_to_nparray(data, feature_array):
     transformed_data = np.array(transformed_data)
     return transformed_data
 
+def run_model(model,test_data, model_name, folder):
 
-def run_model(model,test_data, model_name):
+    # LEFT FOR DEBUGGINING
+    # feature_array = [
+    #     'avg_overhead', \
+    #     'std_overhead', \
+    #     'var_overhead', \
+    #     'median_overhead', \
+    #     'q1_overhead', \
+    #     'q3_overhead', \
+    #     'p9_overhead'
+    #     ]
 
-    data_to_fit = transfrom_to_nparray(test_data, [
-        'avg_overhead', \
-        'std_overhead', \
-        'var_overhead', \
-        'median_overhead', \
-        'q1_overhead', \
-        'q3_overhead', \
-        'p9_overhead'
-        ])
+    feature_array = list(test_data[0].keys())
+    data_to_fit = transfrom_to_nparray(test_data, feature_array[1:])
 
-    # data_to_work = transfrom_to_nparray(test_data, ['median_overhead'])
-    # data_to_fit = data_to_work.reshape(-1, 1)
-
-    folder = './graphs/experiment11/'
-
-    # not plotting scores, trying to figure out how to make the model cluster the number of cars
     n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
-    # n_clusters = 10
     model.set_params(n_clusters = n_clusters)
     model.partial_fit()
     
@@ -354,15 +361,9 @@ def run_model(model,test_data, model_name):
     for index in range(l):
         test_data[index].update({'label': labels[index]})
 
-    new_array = transfrom_to_nparray(test_data, ['totalCarNumber', \
-        'avg_overhead', \
-        'std_overhead', \
-        'var_overhead', \
-        'median_overhead', \
-        'q1_overhead', \
-        'q3_overhead', \
-        'p9_overhead', \
-        'label'])
+    feature_array.append('label')
+
+    new_array = transfrom_to_nparray(test_data, feature_array)
 
 
     #####################################   PLOTING PART    #######################################
@@ -436,13 +437,6 @@ def run_model(model,test_data, model_name):
     # plt.show()
     plt.close()
 
-    # plt.scatter(new_array[:,1], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: Median')
-    # plt.xlabel('Overhead: Average')
-    # plt.savefig(folder + model_name +'_medianVSavg.png')
-    # # plt.show()
-    # plt.close()
-
     # from mpl_toolkits.mplot3d import Axes3D
     # fig = plt.figure(figsize=(15,10))
     # ax = fig.add_subplot(111, projection='3d')
@@ -462,16 +456,25 @@ def run_model(model,test_data, model_name):
     #     x = np.unique(x)
     #     big_list.append(x.tolist())
     
-    # import pickle
-    # import joblib
-    # joblib.dump(model, './models/filename.pkl')
+    #################################   WRITTING PART    ###################
+    # import csv
+    # with open(folder + 'data.csv', 'w') as f:
+    #     writer = csv.DictWriter(f, fieldnames=feature_array)
+    #     writer.writeheader()
+    #     for dictionary in test_data:
+    #         print(dictionary)
+    #         writer.writerow(dictionary)
+    #     # json.dump(test_data, f)
+    #     # for i in test_data:
+    #     #     f.write(json.dumps(i))
+    #     #     f.write(',')
+    # f.close()
     
-    # saving the data (not the model)
-    # with open(folder + 'labels_' + experiment_name + '.txt', 'w') as file1:
-    #     file1.write("The number of the clusters is" + str(len(model.subcluster_labels_)) + "\n")
-    #     file1.write("The centroids are: \n")
-    #     file1.write(str(model.subcluster_centers_))
-    # file1.close()
-
+    # write results to a file
+    with open(folder + 'results.txt', 'w+') as f:
+        f.write('number of clusters: ' + str(len(model.subcluster_labels_)) + '\n')
+        for i in model.subcluster_centers_:
+            f.write(str(i) + ',\n')
+    f.close()
 
 

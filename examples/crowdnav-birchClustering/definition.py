@@ -4,15 +4,14 @@ import numpy as np
 name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
-    "ignore_first_n_results": 20000,
-    "sample_size": 80000,
+    "ignore_first_n_results": 0,
+    "sample_size": 4000,
     "window_size_for_car_number_change": 1000,
+    "partial_clustering_size": 4,
+    "save_in": 'experiment12',
     "type": "clustering",
     "knobs": [
         {'z': 1},
-        # {'z': 2},
-        # {'z': 3},
-        # {'z': 4},
     ]
 }
 

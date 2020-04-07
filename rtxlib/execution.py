@@ -1,12 +1,13 @@
 from rtxlib import info, error, warn, direct_print, process, log_results, current_milli_time
+
 import os
+import csv
 import numpy as np
 from sklearn.cluster import Birch
 from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
-# from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 import json
 
@@ -147,8 +148,7 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                 process("IgnoreSamples \t| ", i, to_ignore)
         print("")
 
-    save_in = exp['save_in']
-    folder = './graphs/' + save_in + '/'
+    folder = exp['save_in']
     os.makedirs(os.path.dirname(folder), exist_ok=True)
 
     # start collecting data
@@ -238,11 +238,11 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     # print(exp['knobs'].values())
     # test_principalComponents = pca.fit_transform(scaled_test_data)
 
-    run_model(birchModel, check_for_printing, ('global_fit_' + str(list(exp['knobs'].values())[0])), folder)
+    run_model(birchModel, check_for_printing, 'final_global_fit_', folder)
 
     # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
-
-    with open(folder + 'experiment.txt', 'w+') as f:
+    
+    with open(folder + 'description.txt', 'w+') as f:
         f.write('The experiment run with the following attributes: \n')
         f.write('Ignored results: ' + str(to_ignore) + '\n')
         f.write('Sample size (in ticks): ' + str(sample_size) + '\n')
@@ -253,7 +253,7 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
             f.write('PCA was performed\n\n')
 
         f.write('Features the model trained on: \n')
-        for feat in list(check_for_printing[0].keys()):
+        for feat in list(check_for_printing[0].keys())[1:-1]:
             f.write(str(feat) + '\n')
     f.close()
 
@@ -457,18 +457,13 @@ def run_model(model,test_data, model_name, folder):
     #     big_list.append(x.tolist())
     
     #################################   WRITTING PART    ###################
-    # import csv
-    # with open(folder + 'data.csv', 'w') as f:
-    #     writer = csv.DictWriter(f, fieldnames=feature_array)
-    #     writer.writeheader()
-    #     for dictionary in test_data:
-    #         print(dictionary)
-    #         writer.writerow(dictionary)
-    #     # json.dump(test_data, f)
-    #     # for i in test_data:
-    #     #     f.write(json.dumps(i))
-    #     #     f.write(',')
-    # f.close()
+    
+    with open(folder + 'data.csv', 'w') as f:
+        writer = csv.DictWriter(f, fieldnames=feature_array)
+        writer.writeheader()
+        for dictionary in test_data:
+            writer.writerow(dictionary)
+    f.close()
     
     # write results to a file
     with open(folder + 'results.txt', 'w+') as f:

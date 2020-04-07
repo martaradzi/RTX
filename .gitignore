@@ -17,5 +17,4 @@ examples/**/results.csv
 *.ipynb
 *.txt
 wandb/
-models/
-weird_runs_resutls/
+

@@ -243,14 +243,16 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
     
     with open(folder + 'description.txt', 'w+') as f:
-        f.write('The experiment run with the following attributes: \n')
-        f.write('Ignored results: ' + str(to_ignore) + '\n')
+        f.write('The experiment took ' + str(current_milli_time() - start_time) + 'ms to run as follows\n')
+        f.write('Ignored results (in ticks): ' + str(to_ignore) + '\n')
         f.write('Sample size (in ticks): ' + str(sample_size) + '\n')
-        f.write('The number of cars chang (in ticks): ' +str(window_size) + '\n')
-        f.write('The partial cluster was performed on data of size: ' + str(partial_cluster_counter) + '\n\n')
+        f.write('Number of cars change  every (in ticks): ' +str(window_size) + '\n')
+        f.write('The partial clustering was performed on data of size: ' + str(partial_cluster_counter) + '\n\n')
         
         if 'pca' in globals():
-            f.write('PCA was performed\n\n')
+            f.write('PCA was performed (only for creating graphs)\n\n')
+        else:
+            f.write('PCA was not performed\n\n')
 
         f.write('Features the model trained on: \n')
         for feat in list(check_for_printing[0].keys())[1:-1]:
@@ -348,6 +350,9 @@ def run_model(model,test_data, model_name, folder):
     #     'p9_overhead'
     #     ]
 
+    global pca 
+    pca = PCA()
+    
     feature_array = list(test_data[0].keys())
     data_to_fit = transfrom_to_nparray(test_data, feature_array[1:])
 
@@ -455,6 +460,13 @@ def run_model(model,test_data, model_name, folder):
     #     x = np.array(small_list) 
     #     x = np.unique(x)
     #     big_list.append(x.tolist())
+
+
+    pca.fit(data_to_fit)
+    plt.plot(np.cumsum(pca.explained_variance_ratio_))
+    plt.xlabel('number of components')
+    plt.ylabel('cumulative explained variance')
+    plt.savefig(folder + model_name + '_PCA.png')
     
     #################################   WRITTING PART    ###################
     

@@ -1,14 +1,17 @@
 from rtxlib import info, error, warn, direct_print, process, log_results, current_milli_time
+
+import os
+import csv
 import numpy as np
 from sklearn.cluster import Birch
 from matplotlib import pyplot as plt
 import seaborn as sns
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
-from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
+import json
 
-import wandb
+# import wandb
 
 def _defaultChangeProvider(variables,wf):
     """ by default we just forword the message to the change provider """
@@ -110,7 +113,7 @@ def experimentFunction(wf, exp):
     # return the result value of the evaluator
     return result
 
-def clusteringExperimentFunction(birchModel, window_overhead, number_of_submodels_trained, wf, exp):
+def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_for_printing, wf, exp):
     """ executes the online clustering experiment """
     start_time = current_milli_time()
     # remove all old data from the queues
@@ -139,126 +142,121 @@ def clusteringExperimentFunction(birchModel, window_overhead, number_of_submodel
     if to_ignore > 0:
         i = 0
         while i < to_ignore:
-            new_data = wf.primary_data_provider["instance"].returnData()
-            if new_data is not None:
-                i += 1
+            new_tick = wf. primary_data_provider['instance'].returnData()
+            if new_tick is not None:
+                i = list(new_tick.values())[0]
                 process("IgnoreSamples \t| ", i, to_ignore)
         print("")
+
+    folder = exp['save_in']
+    os.makedirs(os.path.dirname(folder), exist_ok=True)
 
     # start collecting data
     sample_size = exp["sample_size"]
 
-    window_overhead = [] # this variable stores the overhead data for a specific size 
-    window = exp['window_size']
-    
-    # helper variable, introduced so that the model doesn't have to cluser each state seprarately
-    chunk_size_for_clustering = 400
-    # where the 50 states are stored to be patrially fitted to the model later        
-    data_gathering_place = []
-    
-    # variable to store a certain amount of samples from each knob to later predict on
-    to_add = []
-    # for data analysis we can print to a file
-    # to_print = []
-    # pca = PCA(n_components=2)
+    array_overheads= [] # this variable stores the overhead data for a specific size 
+    window_size = exp['window_size']
+    partial_cluster_counter = exp['partial_clustering_size']
+    partial_fit_array = []
+    check_for_printing = []
 
     i = 0
     try:
-        while i < sample_size:
-            
-            new_data = wf.primary_data_provider["instance"].returnData()
-            
-            if new_data is not None:
 
-                # add data to an array creating time window and control the size of it
-                if i < (window-1):
-                    window_overhead.append(new_data['overhead'])
-                elif i == window:
-                    window_overhead.append(new_data['overhead'])
-                else:
-                    window_overhead.pop(0)
-                    window_overhead.append(new_data['overhead'])
-                        
-                try:
-                    exp["state"] = wf.primary_data_provider["data_reducer"](exp["state"], new_data,wf, window_overhead)
-                    # print(exp["state"])
-                except StopIteration:
-                    raise StopIteration()  # just fwd
-                except RuntimeError:
-                    raise RuntimeError()  # just fwd
-                except:
-                    error("could not reducing data set: " + str(new_data))
-                
-                # gather states of simulation
-                data_gathering_place.append(np.array(list(exp["state"].values())))
-                # to_print.append((new_data['carNumber'],new_data['overhead']))
-                
-                # gather test data
-                if (i % 5 == 0):
-                    to_add.append(list(exp["state"].values()))
-                    i += 1
-                    process("CollectSamples \t| ", i, sample_size)
-                    continue
-                
-
-                # patrially fit the model with each chunk of data saved in data_gathering_place
-                if len(data_gathering_place) == chunk_size_for_clustering:
-                    # cpy = np.array(data_gathering_place)
-                    # TODO: 1. scaler, pca
-                    # scaler = StandardScaler()
-                    # scaled_data = StandardScaler().fit_transform(cpy)
-                    # principalComponents = pca.fit_transform(scaled_data)
-                    
-                    # Partal fit
-                    birchModel.partial_fit(np.array(data_gathering_place))
-                    data_gathering_place = []
-
-                    # PCA for test data 
-                    # copy_to_add = np.array(to_add)
-                    # scaled_test_data = StandardScaler().fit_transform(copy_to_add)
-                    # test_principalComponents = pca.fit_transform(scaled_test_data)
-                    
-                    # Chekcing partial fit 
-                    n = plot_silhouette_scores(birchModel, np.array(to_add), 2, 10, ('partial_fit_' + str(number_of_submodels_trained)))
-                    model_cpy = birchModel
-                    run_model(model_cpy, n, np.array(to_add), ('partial_fit_' + str(number_of_submodels_trained)))
-                    number_of_submodels_trained += 1
-                
-                # gather data from each knob to return it to the clustering model
-
-                i += 1
-                process("CollectSamples \t| ", i, sample_size)
-                    
-                # now we use returnDataListNonBlocking on all secondary data providers
+        while i < (sample_size+1):
+            new_tick = wf. primary_data_provider['instance'].returnData()
+            if new_tick is not None:
+                # ADD TO THE OVERHEAD ARRAY
                 if hasattr(wf, "secondary_data_providers"):
                     for cp in wf.secondary_data_providers:
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                exp["state"] = cp["data_reducer"](exp["state"], nd,wf)
+                                array_overheads.append({'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead']})
+                                # print(array_overheads)
                             except StopIteration:
                                 raise StopIteration()  # just
                             except RuntimeError:
                                 raise RuntimeError()  # just fwd
                             except:
                                 error("could not reducing data set: " + str(nd))
+
+                i = list(new_tick.values())[0]
+
+                if i % window_size == 0:
+                    if hasattr(wf, "secondary_data_providers"):
+                        for cp in wf.secondary_data_providers:
+                            try:
+                                exp["state"] = cp["data_reducer"](exp["state"], wf, array_overheads)
+                                partial_fit_array.append(np.array([
+                                    exp["state"]['avg_overhead'],\
+                                    exp["state"]['std_overhead'], \
+                                    exp["state"]['var_overhead'], \
+                                    exp["state"]['median_overhead'], \
+                                    exp["state"]['q1_overhead'], \
+                                    exp['state']['q3_overhead'], \
+                                    exp["state"]['p9_overhead']
+                                    ]))
+
+                                check = {'totalCarNumber': exp["state"]['totalCarNumber'], \
+                                    'avg_overhead': exp["state"]['avg_overhead'], \
+                                    'std_overhead':  exp["state"]['std_overhead'], \
+                                    'var_overhead': exp["state"]['var_overhead'], \
+                                    'median_overhead': exp["state"]['median_overhead'], \
+                                    'q1_overhead': exp["state"]['q1_overhead'], \
+                                    'q3_overhead': exp["state"]['q3_overhead'], \
+                                    'p9_overhead': exp["state"]['p9_overhead']}
+                             
+                                check_for_printing.append(check)
+                                # print(check_for_printing)
+                                array_overheads = []
+                                check = []
+                                # print(exp['state'])
+                            except StopIteration:
+                                raise StopIteration()  # just
+                            except RuntimeError:
+                                raise RuntimeError()  # just fwd
+                            except:
+                                error("could not reducing data set: " + str(nd))
+                            # print(exp['state']) 
+                    if len(partial_fit_array) == partial_cluster_counter:
+
+                        numpy_array = np.array(partial_fit_array)
+                        
+                        birchModel.partial_fit(numpy_array)
+                        
+                        number_of_submodels_trained += 1
+                        partial_fit_array = []
+
+                process("ticks \t| ", i, sample_size)
+
         print("")
     except StopIteration:
         # this iteration should stop asap
         error("This experiment got stopped as requested by a StopIteration exception")
 
-    # import json
-    # with open('2ksamplex12.txt', 'a+') as file1:
-    #     file1.write(json.dumps(to_print))
-    print(exp['knobs'].values())
-    # copy_to_add = np.array(to_add)
-    # scaled_test_data = StandardScaler().fit_transform(copy_to_add)
+    # print(exp['knobs'].values())
     # test_principalComponents = pca.fit_transform(scaled_test_data)
 
-    n = plot_silhouette_scores(birchModel, np.array(to_add), 3, 10, ('global_fit_' + str(number_of_submodels_trained)))
-    run_model(birchModel, n, np.array(to_add), ('global_fit_' + str(list(exp['knobs'].values())[0])))
-    wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
+    run_model(birchModel, check_for_printing, 'final_global_fit_', folder)
+
+    # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
     
+    with open(folder + 'description.txt', 'w+') as f:
+        f.write('The experiment run with the following attributes: \n')
+        f.write('Ignored results: ' + str(to_ignore) + '\n')
+        f.write('Sample size (in ticks): ' + str(sample_size) + '\n')
+        f.write('The number of cars chang (in ticks): ' +str(window_size) + '\n')
+        f.write('The partial cluster was performed on data of size: ' + str(partial_cluster_counter) + '\n\n')
+        
+        if 'pca' in globals():
+            f.write('PCA was performed\n\n')
+
+        f.write('Features the model trained on: \n')
+        for feat in list(check_for_printing[0].keys())[1:-1]:
+            f.write(str(feat) + '\n')
+    f.close()
+
     try:
         result = wf.evaluator(birchModel)
     except:
@@ -281,20 +279,16 @@ def clusteringExperimentFunction(birchModel, window_overhead, number_of_submodel
     # log the result values into a csv file
     log_results(wf.folder, list(exp["knobs"].values()) + [result])
     
-    # return the result value of the evaluator (which was returned before I started changing code)
-    # as well as window_overhead (the current window of data to pass to the next knob iteration)
-    # and to_add (with number of states for predicting in the clustering strategy)
-    return result, window_overhead, to_add, number_of_submodels_trained
+    return result, number_of_submodels_trained
 
-
-def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, save_graph_name):
+def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, folder, save_graph_name):
     """ Plot silhouette scores and return the best number of clusters"""
-    silhouette_scores = [] # store scores for each number of clusters 
-    # if statement only needed if the sample size is too small (when debugging)
-    
+
     if len(model.subcluster_labels_) > 2:
-        # clusters_range = range(initial_clusters_number, (n_clusters_model+1))
-        clusters_range = range(n_clusters_min, n_clusters_max)
+
+        silhouette_scores = []
+
+        clusters_range = range(n_clusters_min, n_clusters_max+1)
         results_dict = []
         # print(clusters_range)
         for number in clusters_range:
@@ -310,57 +304,172 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, sav
                 silhouette_scores.append(s)
                 results_dict.append((number, s))
             except ValueError:
-                # print('impossible to check silhouette score for ' + str(number) + ' number of clusters')
                 pass
 
         silhouette_range = [i[0] for i in results_dict]  
         plt.plot(silhouette_range[:], silhouette_scores[:])
         plt.xlabel('Number Of Clusers')
         plt.ylabel('Silhouette Score')
-        plt.savefig('./graphs/first_pca/silhouette'+ save_graph_name +'.png')
+        plt.savefig(folder + 'silhouette_'+ save_graph_name +'.png')
         # plt.show()
         plt.close() 
         max_score = max(silhouette_scores)
         for i in results_dict:
             if i[1] == max_score:
-                # print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
+                print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
                 return int(i[0])
     else:
+        print('couldnt get the scores, plz help')
+        print('returning number of clusters = ' + str(n_clusters_min))
         return n_clusters_min
-    
-def run_model(model, n_clusters, test_data, model_name):
 
-    # for the final fit of data, set the number of clusters
+def transfrom_to_nparray(data, feature_array):
+    """ Transform the gathered data to numpy array to fit the model's requirements """
+    transformed_data = []
+    for row in data:
+        t = ()
+        for k, v in row.items():
+            if k in feature_array:
+                t = t + (v,)
+        transformed_data.append(t)
+    transformed_data = np.array(transformed_data)
+    return transformed_data
 
+def run_model(model,test_data, model_name, folder):
+
+    # LEFT FOR DEBUGGINING
+    # feature_array = [
+    #     'avg_overhead', \
+    #     'std_overhead', \
+    #     'var_overhead', \
+    #     'median_overhead', \
+    #     'q1_overhead', \
+    #     'q3_overhead', \
+    #     'p9_overhead'
+    #     ]
+
+    feature_array = list(test_data[0].keys())
+    data_to_fit = transfrom_to_nparray(test_data, feature_array[1:])
+
+    n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
     model.set_params(n_clusters = n_clusters)
     model.partial_fit()
-    # run predict to check the labels and for plotting later
-    labels = model.predict(test_data)
-    # print(len(np.unique(np.array(labels))))
-    cluster_labels = labels
-
-    wandb.sklearn.plot_clusterer(model, test_data, cluster_labels, labels=None, model_name=model_name)
     
-    # print(len(model.subcluster_centers_))
+    labels = model.predict(data_to_fit)
 
-    plt.scatter(test_data[:,0], test_data[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('09Quantile')
-    plt.xlabel('Variance')
-    # plt.ylabel('PCA_1')
-    # plt.xlabel('PCA_2')
-    plt.savefig('./graphs/first_pca/'+ model_name +'.png')
+    l = len(labels)
+    for index in range(l):
+        test_data[index].update({'label': labels[index]})
+
+    feature_array.append('label')
+
+    new_array = transfrom_to_nparray(test_data, feature_array)
+
+
+    #####################################   PLOTING PART    #######################################
+    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')    
+    plt.ylabel('Overhead: average')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSavg.png')
     # plt.show()
     plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: STD')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSstd.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Var')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSvar.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Median')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSmedian.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 1st Quartile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSq1.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 3rd Quartile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSq3.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,7], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 90th Percentile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSp90.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Variance')
+    plt.xlabel('Overhead: Average')
+    plt.savefig(folder + model_name +'_varVS90th.png')
+    # plt.show()
+    plt.close()
+        
+    plt.scatter(new_array[:,5], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 3rd Quartile')
+    plt.xlabel('Overhead: 1st Quartile')
+    plt.savefig(folder + model_name +'_1stVS3rd.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,4], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: STD')
+    plt.xlabel('Overhead: Median')
+    plt.savefig(folder + model_name +'_medianVSstd.png')
+    # plt.show()
+    plt.close()
+
+    # from mpl_toolkits.mplot3d import Axes3D
+    # fig = plt.figure(figsize=(15,10))
+    # ax = fig.add_subplot(111, projection='3d')
+    # ax.scatter(new_array[:,1], new_array[:,0], new_array[:,2], c=new_array[:,3], cmap='rainbow', alpha=0.8, edgecolors='b')
+    # ax.set_xlabel('Average')
+    # ax.set_ylabel('cars')
+    # ax.set_zlabel('Median')
+    # fig.savefig(folder + model_name + '3D.png')
+
+    # big_list = []
+    # for label in np.unique(np.array(labels)):
+    #     small_list = []
+    #     for d in test_data:
+    #         if d['label'] == label:
+    #             small_list.append(d['totalCarNumber'])
+    #     x = np.array(small_list) 
+    #     x = np.unique(x)
+    #     big_list.append(x.tolist())
     
-    # import pickle
-    # import joblib
-    # joblib.dump(model, './models/filename.pkl')
+    #################################   WRITTING PART    ###################
     
-    # saving the data (not the model)
-    # with open(folder + 'labels_' + experiment_name + '.txt', 'w') as file1:
-    #     file1.write("The number of the clusters is" + str(len(model.subcluster_labels_)) + "\n")
-    #     file1.write("The centroids are: \n")
-    #     file1.write(str(model.subcluster_centers_))
-    # file1.close()
+    with open(folder + 'data.csv', 'w') as f:
+        writer = csv.DictWriter(f, fieldnames=feature_array)
+        writer.writeheader()
+        for dictionary in test_data:
+            writer.writerow(dictionary)
+    f.close()
+    
+    # write results to a file
+    with open(folder + 'results.txt', 'w+') as f:
+        f.write('number of clusters: ' + str(len(model.subcluster_labels_)) + '\n')
+        for i in model.subcluster_centers_:
+            f.write(str(i) + ',\n')
+    f.close()
 
 

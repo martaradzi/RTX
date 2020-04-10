@@ -1,9 +1,9 @@
 colorama
-kafka-python
-scikit-optimize
-flask
-pandas
-seaborn
-paho-mqtt
-requests
 deap
+flask
+kafka-python
+paho-mqtt
+pandas
+requests
+scikit-optimize
+seaborn

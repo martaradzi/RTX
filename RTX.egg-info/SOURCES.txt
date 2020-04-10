@@ -22,6 +22,7 @@ rtxlib/dataproviders/IntervalDataProvider.py
 rtxlib/dataproviders/KafkaConsumerDataProvider.py
 rtxlib/dataproviders/MQTTListenerDataProvider.py
 rtxlib/dataproviders/__init__.py
+rtxlib/executionstrategy/ClusteringStrategy.py
 rtxlib/executionstrategy/EvolutionaryStrategy.py
 rtxlib/executionstrategy/ForeverStrategy.py
 rtxlib/executionstrategy/SelfOptimizerStrategy.py

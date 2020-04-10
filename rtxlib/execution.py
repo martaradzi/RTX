@@ -478,10 +478,11 @@ def run_model(model,test_data, model_name, folder):
     f.close()
     
     # write results to a file
-    with open(folder + 'results.txt', 'w+') as f:
-        f.write('number of clusters: ' + str(len(model.subcluster_labels_)) + '\n')
-        for i in model.subcluster_centers_:
-            f.write(str(i) + ',\n')
-    f.close()
+    # DOES NOT WORK. PLOTS SUBCLUSTERS
+   # with open(folder + 'results.txt', 'w+') as f:
+      #  f.write('number of clusters: ' + str(len(model.subcluster_labels_)) + '\n')
+     #   for i in model.subcluster_centers_:
+    #        f.write(str(i) + ',\n')
+   # f.close()
 
 

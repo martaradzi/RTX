@@ -5,7 +5,6 @@
 **/target/**
 **.iml
 checkpoint/*
-*/results.csv
 .idea/
 DBA.egg-info/
 build/
@@ -14,7 +13,5 @@ dist/
 examples/**/*.png
 examples/**/execution.log
 examples/**/results.csv
-*.ipynb
-*.csv
 wandb/
 

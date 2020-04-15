@@ -172,7 +172,7 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                array_overheads.append({'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead']})
+                                array_overheads.append({'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead'], 'duration': nd['duration']})
                                 # print(array_overheads)
                             except StopIteration:
                                 raise StopIteration()  # just
@@ -205,7 +205,8 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                                     'median_overhead': exp["state"]['median_overhead'], \
                                     'q1_overhead': exp["state"]['q1_overhead'], \
                                     'q3_overhead': exp["state"]['q3_overhead'], \
-                                    'p9_overhead': exp["state"]['p9_overhead']}
+                                    'p9_overhead': exp["state"]['p9_overhead'], \
+                                    'duration': exp["state"]['duration']}
                              
                                 check_for_printing.append(check)
                                 # print(check_for_printing)
@@ -354,7 +355,7 @@ def run_model(model,test_data, model_name, folder):
     pca = PCA()
     
     feature_array = list(test_data[0].keys())
-    data_to_fit = transfrom_to_nparray(test_data, feature_array[1:])
+    data_to_fit = transfrom_to_nparray(test_data, feature_array[1:-1])
 
     n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
     model.set_params(n_clusters = n_clusters)

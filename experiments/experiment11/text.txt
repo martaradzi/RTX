@@ -1,0 +1,13 @@
+80 000 ticks
+global fit every 20 partial fits (resutls in 2 global fits)
+
+igonre first 20 000 tick to see if the data stabilizes
+
+Features: 
+'avg_overhead', \
+'std_overhead', \
+'var_overhead', \
+'median_overhead', \
+'q1_overhead', \
+'q3_overhead', \
+'p9_overhead'

@@ -1,0 +1,10 @@
+experiment was run with:
+- 80 000 ticks
+- change of cars every 1000 ticks
+- partial fit every 4000 ticks
+- global fit every 10 partial fits
+
+features:
+- 90th percentile of overhead
+- median of overhead
+- 1st and 3rd quartiles

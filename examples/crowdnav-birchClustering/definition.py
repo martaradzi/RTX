@@ -5,10 +5,10 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_results": 0,
-    "sample_size": 200000,
-    "window_size_for_car_number_change": 5000,
+    "sample_size": 42000,
+    "window_size_for_car_number_change": 3000,
     "partial_clustering_size": 4,
-    "save_in": './experiments/experiment13/',
+    "save_in": './experiments/trip_duration/',
     "type": "clustering",
     "knobs": [
         {'z': 1},
@@ -18,6 +18,7 @@ execution_strategy = {
 def secondary_data_reducer(state, wf, temp_dict):
     # cnt = state["count"]
     # overhead = temp_array[-1]
+    state['duration'] = np.average([d['duration'] for d in temp_dict])
     state['totalCarNumber'] = int(np.median([d['totalCarNumber'] for d in temp_dict]))
     state['avg_overhead'] = np.average([d['overhead'] for d in temp_dict])
     state['std_overhead'] = np.std([d['overhead'] for d in temp_dict])
@@ -66,6 +67,7 @@ def evaluator(model):
 def state_initializer(state, wf):
     # state['tick'] = 0
     state['totalCarNumber'] = 0
+    state['duration'] = 0
     # state["overhead"] = 0
     state['avg_overhead'] = 0
     state['std_overhead'] = 0   

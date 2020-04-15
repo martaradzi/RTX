@@ -5,6 +5,7 @@
 **/target/**
 **.iml
 checkpoint/*
+.ipynb_checkpoints/
 .idea/
 DBA.egg-info/
 build/

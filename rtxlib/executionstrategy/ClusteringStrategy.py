@@ -37,17 +37,19 @@ def start_clustering_strategy(wf):
     # wandb.init(project='rtx-clustering', name="Two Features Run")
     birchModel = Birch(n_clusters=None)
 
-    number_of_submodels_trained = 0
+    # number_of_submodels_trained = 0
 
     data = []
     data_for_partial_clustering = []
+    sample_number = 1
 
     while len(data) < sample_size:
-        result, new_sample = clusteringExperimentFunction(wf, {
-            "knobs": wf.execution_strategy["knobs"],
+        result, new_sample = clusteringExperimentFunction(sample_number, wf, {
+            # "knobs": wf.execution_strategy["knobs"],
             "ignore_first_n_results": wf.execution_strategy['ignore_first_n_results'],
             "window_size": wf.execution_strategy['window_size_for_car_number_change'],
         })
+        sample_number += 1
         data.append(new_sample)
         data_for_partial_clustering.append(new_sample)
 

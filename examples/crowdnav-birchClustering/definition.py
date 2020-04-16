@@ -10,9 +10,9 @@ execution_strategy = {
     "partial_clustering_size": 2,
     "save_in": './experiments/test_ignore/',
     "type": "clustering",
-    "knobs": [
-        {'z': 1},
-    ]
+    # "knobs": [
+    #     {'z': 1},
+    # ]
 }
 
 def secondary_data_reducer(state, wf, temp_dict):

@@ -4,11 +4,11 @@ import numpy as np
 name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
-    "ignore_first_n_results": 0,
-    "sample_size": 42000,
+    "ignore_first_n_results": 1500,
+    "sample_size": 80,
     "window_size_for_car_number_change": 3000,
-    "partial_clustering_size": 4,
-    "save_in": './experiments/trip_duration/',
+    "partial_clustering_size": 2,
+    "save_in": './experiments/test_ignore/',
     "type": "clustering",
     "knobs": [
         {'z': 1},
@@ -53,15 +53,15 @@ primary_data_provider = {
 
 change_provider = {
     "type": "kafka_producer",
-    "kafka_uri": "localhost:9092", # this was changed
+    "kafka_uri": "localhost:9092",
     "topic": "crowd-nav-commands",
     "serializer": "JSON",
 }
 
 
-def evaluator(model):
+def evaluator(resultState,wf):
 
-    return len(model.subcluster_labels_)
+    return resultState['duration']
 
 
 def state_initializer(state, wf):

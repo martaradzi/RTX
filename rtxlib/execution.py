@@ -113,7 +113,9 @@ def experimentFunction(wf, exp):
     # return the result value of the evaluator
     return result
 
-def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_for_printing, wf, exp):
+
+# def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_for_printing, wf, exp):
+def clusteringExperimentFunction(wf, exp):
     """ executes the online clustering experiment """
     start_time = current_milli_time()
     # remove all old data from the queues
@@ -130,12 +132,22 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     info("> KnobValues     | " + str(exp["knobs"]))
     # create new state
     exp["state"] = wf.state_initializer(dict(),wf)
-
+    
     # apply changes to system
     try:
         wf.change_provider["instance"].applyChange(change_creator(exp["knobs"],wf))
     except:
         error("apply changes did not work")
+
+    first_batch_tick = None
+
+
+    # get the first tick of the new sample 
+    while first_batch_tick is None:
+        new_tick = wf. primary_data_provider['instance'].returnData()
+        if new_tick is not None:
+            first_batch_tick = list(new_tick.values())[0]
+
 
     # ignore the first data sets
     to_ignore = exp["ignore_first_n_results"]
@@ -144,26 +156,26 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
         while i < to_ignore:
             new_tick = wf. primary_data_provider['instance'].returnData()
             if new_tick is not None:
-                i = list(new_tick.values())[0]
+                i = list(new_tick.values())[0] - first_batch_tick
                 process("IgnoreSamples \t| ", i, to_ignore)
         print("")
 
-    folder = exp['save_in']
-    os.makedirs(os.path.dirname(folder), exist_ok=True)
 
-    # start collecting data
-    sample_size = exp["sample_size"]
+    window_size = exp['window_size']
+
+    # get the tick after ignoring
+    sample_beginning_tick = None
+    while sample_beginning_tick is None:
+        new_tick = wf. primary_data_provider['instance'].returnData()
+        if new_tick is not None:
+            sample_beginning_tick = list(new_tick.values())[0]
 
     array_overheads= [] # this variable stores the overhead data for a specific size 
-    window_size = exp['window_size']
-    partial_cluster_counter = exp['partial_clustering_size']
-    partial_fit_array = []
-    check_for_printing = []
 
     i = 0
     try:
 
-        while i < (sample_size+1):
+        while i < (window_size):
             new_tick = wf. primary_data_provider['instance'].returnData()
             if new_tick is not None:
                 # ADD TO THE OVERHEAD ARRAY
@@ -181,90 +193,48 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
                             except:
                                 error("could not reducing data set: " + str(nd))
 
-                i = list(new_tick.values())[0]
-
-                if i % window_size == 0:
-                    if hasattr(wf, "secondary_data_providers"):
-                        for cp in wf.secondary_data_providers:
-                            try:
-                                exp["state"] = cp["data_reducer"](exp["state"], wf, array_overheads)
-                                partial_fit_array.append(np.array([
-                                    exp["state"]['avg_overhead'],\
-                                    exp["state"]['std_overhead'], \
-                                    exp["state"]['var_overhead'], \
-                                    exp["state"]['median_overhead'], \
-                                    exp["state"]['q1_overhead'], \
-                                    exp['state']['q3_overhead'], \
-                                    exp["state"]['p9_overhead']
-                                    ]))
-
-                                check = {'totalCarNumber': exp["state"]['totalCarNumber'], \
-                                    'avg_overhead': exp["state"]['avg_overhead'], \
-                                    'std_overhead':  exp["state"]['std_overhead'], \
-                                    'var_overhead': exp["state"]['var_overhead'], \
-                                    'median_overhead': exp["state"]['median_overhead'], \
-                                    'q1_overhead': exp["state"]['q1_overhead'], \
-                                    'q3_overhead': exp["state"]['q3_overhead'], \
-                                    'p9_overhead': exp["state"]['p9_overhead'], \
-                                    'duration': exp["state"]['duration']}
-                             
-                                check_for_printing.append(check)
-                                # print(check_for_printing)
-                                array_overheads = []
-                                check = []
-                                # print(exp['state'])
-                            except StopIteration:
-                                raise StopIteration()  # just
-                            except RuntimeError:
-                                raise RuntimeError()  # just fwd
-                            except:
-                                error("could not reducing data set: " + str(nd))
-                            # print(exp['state']) 
-                    if len(partial_fit_array) == partial_cluster_counter:
-
-                        numpy_array = np.array(partial_fit_array)
-                        
-                        birchModel.partial_fit(numpy_array)
-                        
-                        number_of_submodels_trained += 1
-                        partial_fit_array = []
-
-                process("ticks \t| ", i, sample_size)
+                i = list(new_tick.values())[0] - sample_beginning_tick
+                process("ticks \t| ", i, window_size)
 
         print("")
     except StopIteration:
         # this iteration should stop asap
         error("This experiment got stopped as requested by a StopIteration exception")
 
-    # print(exp['knobs'].values())
-    # test_principalComponents = pca.fit_transform(scaled_test_data)
+    new_sample = []
 
-    run_model(birchModel, check_for_printing, 'final_global_fit_', folder)
+    if hasattr(wf, "secondary_data_providers"):
+        for cp in wf.secondary_data_providers:
+            try:
+                exp["state"] = cp["data_reducer"](exp["state"], wf, array_overheads)
 
-    # wandb.log({'subclusters': len(birchModel.subcluster_centers_)}, step=(list(exp['knobs'].values())[0]))
-    
-    with open(folder + 'description.txt', 'w+') as f:
-        f.write('The experiment took ' + str(current_milli_time() - start_time) + 'ms to run as follows\n')
-        f.write('Ignored results (in ticks): ' + str(to_ignore) + '\n')
-        f.write('Sample size (in ticks): ' + str(sample_size) + '\n')
-        f.write('Number of cars change  every (in ticks): ' +str(window_size) + '\n')
-        f.write('The partial clustering was performed on data of size: ' + str(partial_cluster_counter) + '\n\n')
-        
-        if 'pca' in globals():
-            f.write('PCA was performed (only for creating graphs)\n\n')
-        else:
-            f.write('PCA was not performed\n\n')
+                new_sample = {'totalCarNumber': exp["state"]['totalCarNumber'], \
+                    'avg_overhead': exp["state"]['avg_overhead'], \
+                    'std_overhead':  exp["state"]['std_overhead'], \
+                    'var_overhead': exp["state"]['var_overhead'], \
+                    'median_overhead': exp["state"]['median_overhead'], \
+                    'q1_overhead': exp["state"]['q1_overhead'], \
+                    'q3_overhead': exp["state"]['q3_overhead'], \
+                    'p9_overhead': exp["state"]['p9_overhead'], \
+                    'duration': exp["state"]['duration']}
+                             
+                # check_for_printing.append(check)
+                # print(check_for_printing)
 
-        f.write('Features the model trained on: \n')
-        for feat in list(check_for_printing[0].keys())[1:-1]:
-            f.write(str(feat) + '\n')
-    f.close()
+            except StopIteration:
+                raise StopIteration()  # just
+            except RuntimeError:
+                raise RuntimeError()  # just fwd
+            except:
+                error("could not reducing data set")
+
 
     try:
-        result = wf.evaluator(birchModel)
+        result = wf.evaluator(exp["state"],wf)
     except:
         result = 0
         error("evaluator failed")
+
     # we store the counter of this experiment in the workflow
     if hasattr(wf, "experimentCounter"):
         wf.experimentCounter += 1
@@ -280,9 +250,9 @@ def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_
     info("> FullState      | " + str(exp["state"]))
     info("> ResultClusterValue    | " + str(result))
     # log the result values into a csv file
-    log_results(wf.folder, list(exp["knobs"].values()) + [result])
+    # log_results(wf.folder, list(exp["knobs"].values()) + [result])
     
-    return result, number_of_submodels_trained
+    return result, new_sample
 
 def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, folder, save_graph_name):
     """ Plot silhouette scores and return the best number of clusters"""

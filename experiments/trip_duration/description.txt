@@ -1,10 +1,7 @@
-The experiment took 2493829ms to run as follows
-Ignored results (in ticks): 0
-Sample size (in ticks): 42000
-Number of cars change  every (in ticks): 3000
-The partial clustering was performed on data of size: 4
-
-PCA was performed (only for creating graphs)
+Ignored results (in ticks): 50
+Sample size (in ticks): 4
+Number of cars change  every (in ticks): 500
+The partial clustering was performed on data of size: 2
 
 Features the model trained on: 
 avg_overhead

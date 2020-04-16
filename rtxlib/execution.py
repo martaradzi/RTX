@@ -245,7 +245,7 @@ def clusteringExperimentFunction(sample_number, wf, exp):
              + " took " + str(duration) + "ms" + " - remaining ~" + str(
             (wf.totalExperiments - wf.experimentCounter) * duration / 1000) + "sec")
     info("> FullState      | " + str(exp["state"]))
-    info("> ResultClusterValue    | " + str(result))
+    info("> Average trip duration | " + str(result))
     # log the result values into a csv file
     # log_results(wf.folder, list(exp["knobs"].values()) + [result])
     

@@ -115,7 +115,7 @@ def experimentFunction(wf, exp):
 
 
 # def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_for_printing, wf, exp):
-def clusteringExperimentFunction(wf, exp):
+def clusteringExperimentFunction(sample_number, wf, exp):
     """ executes the online clustering experiment """
     start_time = current_milli_time()
     # remove all old data from the queues
@@ -129,7 +129,7 @@ def clusteringExperimentFunction(wf, exp):
 
     # start
     info(">")
-    info("> KnobValues     | " + str(exp["knobs"]))
+    info("> Sample Number     | " + str(sample_number))
     # create new state
     exp["state"] = wf.state_initializer(dict(),wf)
     
@@ -194,7 +194,7 @@ def clusteringExperimentFunction(wf, exp):
                                 error("could not reducing data set: " + str(nd))
 
                 i = list(new_tick.values())[0] - sample_beginning_tick
-                process("ticks \t| ", i, window_size)
+                process("GatheredData \t| ", i, window_size)
 
         print("")
     except StopIteration:
@@ -217,9 +217,6 @@ def clusteringExperimentFunction(wf, exp):
                     'q3_overhead': exp["state"]['q3_overhead'], \
                     'p9_overhead': exp["state"]['p9_overhead'], \
                     'duration': exp["state"]['duration']}
-                             
-                # check_for_printing.append(check)
-                # print(check_for_printing)
 
             except StopIteration:
                 raise StopIteration()  # just
@@ -248,7 +245,7 @@ def clusteringExperimentFunction(wf, exp):
              + " took " + str(duration) + "ms" + " - remaining ~" + str(
             (wf.totalExperiments - wf.experimentCounter) * duration / 1000) + "sec")
     info("> FullState      | " + str(exp["state"]))
-    info("> ResultClusterValue    | " + str(result))
+    info("> Average trip duration | " + str(result))
     # log the result values into a csv file
     # log_results(wf.folder, list(exp["knobs"].values()) + [result])
     

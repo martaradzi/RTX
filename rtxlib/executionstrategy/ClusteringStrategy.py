@@ -11,7 +11,7 @@ import numpy as np
 
 def start_clustering_strategy(wf):
     """ executes all experiments from the definition file """
-    info("> ExecStrategy   | Clustering", Fore.CYAN)
+    info("> ExecStrategy   | BirchClustering", Fore.CYAN)
     wf.totalExperiments = wf.execution_strategy["sample_size"]
     
     folder = wf.execution_strategy['save_in']
@@ -45,7 +45,6 @@ def start_clustering_strategy(wf):
 
     while len(data) < sample_size:
         result, new_sample = clusteringExperimentFunction(sample_number, wf, {
-            # "knobs": wf.execution_strategy["knobs"],
             "ignore_first_n_results": wf.execution_strategy['ignore_first_n_results'],
             "window_size": wf.execution_strategy['window_size_for_car_number_change'],
         })

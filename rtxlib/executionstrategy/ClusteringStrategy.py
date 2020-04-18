@@ -12,7 +12,7 @@ import numpy as np
 def start_clustering_strategy(wf):
     """ executes all experiments from the definition file """
     info("> ExecStrategy   | Clustering", Fore.CYAN)
-    wf.totalExperiments = len(wf.execution_strategy["knobs"])
+    wf.totalExperiments = wf.execution_strategy["sample_size"]
     
     folder = wf.execution_strategy['save_in']
     os.makedirs(os.path.dirname(folder), exist_ok=True)
@@ -21,7 +21,7 @@ def start_clustering_strategy(wf):
     partial_clustering_size = wf.execution_strategy['partial_clustering_size']
     # number_of_submodels_trained = 0
 
-    model_name = 'blah'
+    model_name = '_global_'
     
     feature_array = [
         'avg_overhead', \

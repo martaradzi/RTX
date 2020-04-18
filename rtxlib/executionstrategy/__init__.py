@@ -39,7 +39,7 @@ def run_execution_strategy(wf):
             start_forever_strategy(wf)
             
         elif wf.execution_strategy["type"] == "clustering":
-            log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
+            #log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
             start_clustering_strategy(wf)
     
     except RuntimeError:

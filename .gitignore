@@ -10,7 +10,7 @@ checkpoint/*
 DBA.egg-info/
 build/
 dist/
-*/*.png
+*.png
 examples/**/*.png
 examples/**/execution.log
 examples/**/results.csv

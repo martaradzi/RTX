@@ -341,16 +341,87 @@ def run_model(model,test_data, model_name, folder):
 
 
     #####################################   PLOTING PART    #######################################
-    i = 0
-    for i in range(len(feature_array[:-2])):
-        rest_of_featuers = len(feature_array[:-1]) - i
-        for j in range(rest_of_featuers):
-            plt.scatter(new_array[:, i], new_array[:, i+j], c = labels,cmap='rainbow', alpha=0.7, edgecolors='b')
-            plt.xlabel(feature_array[i])
-            plt.ylabel(feature_array[i+j])
-            plt.savefig(folder + model_name + str(feature_array[i]) + 'VS' + str(feature_array[i+j]))
-            # plt.show()
-            plt.close()
+    # i = 0
+    # for i in range(len(feature_array[:-2])):
+    #     rest_of_featuers = len(feature_array[:-1])
+    #     for j in range(i+1, rest_of_featuers):
+    #         plt.scatter(new_array[:, i], new_array[:, j], c = labels,cmap='rainbow', alpha=0.7, edgecolors='b')
+    #         plt.xlabel(feature_array[i])
+    #         plt.ylabel(feature_array[j])
+    #         plt.savefig(folder + model_name + str(feature_array[i]) + 'VS' + str(feature_array[i+j]))
+    #         # plt.show()
+    #         plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')    
+    plt.ylabel('Overhead: average')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSavg.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: STD')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSstd.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Var')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSvar.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Median')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSmedian.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 1st Quartile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSq1.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 3rd Quartile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSq3.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,7], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 90th Percentile')
+    plt.xlabel('car number')
+    plt.savefig(folder+ model_name +'_carVSp90.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: Variance')
+    plt.xlabel('Overhead: Average')
+    plt.savefig(folder + model_name +'_varVS90th.png')
+    # plt.show()
+    plt.close()
+        
+    plt.scatter(new_array[:,5], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: 3rd Quartile')
+    plt.xlabel('Overhead: 1st Quartile')
+    plt.savefig(folder + model_name +'_1stVS3rd.png')
+    # plt.show()
+    plt.close()
+
+    plt.scatter(new_array[:,4], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Overhead: STD')
+    plt.xlabel('Overhead: Median')
+    plt.savefig(folder + model_name +'_medianVSstd.png')
+    # plt.show()
+    plt.close()
+
     
     # from mpl_toolkits.mplot3d import Axes3D
     # fig = plt.figure(figsize=(15,10))

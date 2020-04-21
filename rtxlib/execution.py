@@ -115,7 +115,7 @@ def experimentFunction(wf, exp):
 
 
 # def clusteringExperimentFunction(birchModel, number_of_submodels_trained, check_for_printing, wf, exp):
-def clusteringExperimentFunction(sample_number, wf, exp):
+def clusteringExperimentFunction(sample_number, folder, wf, exp):
     """ executes the online clustering experiment """
     start_time = current_milli_time()
     # remove all old data from the queues
@@ -184,7 +184,8 @@ def clusteringExperimentFunction(sample_number, wf, exp):
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                array_overheads.append({'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead'], 'duration': nd['duration']})
+                                # if abs(nd['totalCarNumber'] - nd['startCarNumber']) == 100:
+                                array_overheads.append({'startCarNumber': nd['startCarNumber'], 'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead'], 'duration': nd['duration']})
                                 # print(array_overheads)
                             except StopIteration:
                                 raise StopIteration()  # just
@@ -219,6 +220,13 @@ def clusteringExperimentFunction(sample_number, wf, exp):
                     # 'duration': exp["state"]['duration']
                     }
 
+                with open(folder + 'raw_data.csv', 'a+') as f:
+                    keys = array_overheads[0].keys()
+                    writer = csv.DictWriter(f, fieldnames=keys)
+                    for dictionary in array_overheads:
+                            writer.writerow(dictionary)
+                f.close()
+
             except StopIteration:
                 raise StopIteration()  # just
             except RuntimeError:
@@ -226,13 +234,12 @@ def clusteringExperimentFunction(sample_number, wf, exp):
             except:
                 error("could not reducing data set")
 
-
     try:
         result = wf.evaluator(exp["state"],wf)
     except:
         result = 0
         error("evaluator failed")
-
+    
     # we store the counter of this experiment in the workflow
     if hasattr(wf, "experimentCounter"):
         wf.experimentCounter += 1
@@ -246,11 +253,11 @@ def clusteringExperimentFunction(sample_number, wf, exp):
              + " took " + str(duration) + "ms" + " - remaining ~" + str(
             (wf.totalExperiments - wf.experimentCounter) * duration / 1000) + "sec")
     info("> FullState      | " + str(exp["state"]))
-    info("> Average trip duration | " + str(result))
+    info("> Number of Messages | " + str(result))
     # log the result values into a csv file
     # log_results(wf.folder, list(exp["knobs"].values()) + [result])
     
-    return result, new_sample
+    return result, new_sample, array_overheads
 
 def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, folder, save_graph_name):
     """ Plot silhouette scores and return the best number of clusters"""

@@ -1,10 +1,10 @@
-The experiment took 656580ms to run as follows
+The experiment took 596603ms to run as follows
 Ignored results (in ticks): 2000
 Sample size (in ticks): 4
 Number of cars change  every (in ticks): 3000
 The partial clustering was performed on data of size: 4
 
-Avg number of trips per windwo: 791.75Features the model trained on: 
+Avg number of trips per windwo: 725.25Features the model trained on: 
 avg_overhead
 std_overhead
 var_overhead

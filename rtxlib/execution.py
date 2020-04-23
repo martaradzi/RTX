@@ -184,7 +184,7 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                if abs(nd['totalCarNumber'] - nd['startCarNumber']) == 100 or nd['startCarNumber'] == 0:
+                                if abs(nd['totalCarNumber'] - nd['startCarNumber']) <= 100 or nd['startCarNumber'] == 0:
 
                                     array_overheads.append({'startCarNumber': nd['startCarNumber'], 'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead'], 'duration': nd['duration']})
                                 # print(array_overheads)

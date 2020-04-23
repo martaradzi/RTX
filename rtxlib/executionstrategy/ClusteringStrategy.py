@@ -78,10 +78,10 @@ def start_clustering_strategy(wf):
     duration = current_milli_time() - start_time
 
     with open(folder + 'description.txt', 'w+') as f:
-        f.write('The experiment took ' + str(duration) + 'ms to run as follows\n')
+        f.write('The experiment took ' + str(duration/60000) + 'minutes to run as follows\n')
         f.write('Ignored results (in ticks): ' + str(wf.execution_strategy['ignore_first_n_results']) + '\n')
-        f.write('Sample size (in ticks): ' + str(sample_size) + '\n')
-        f.write('Number of cars change  every (in ticks): ' +str(wf.execution_strategy['window_size_for_car_number_change']) + '\n')
+        f.write('Sample size: ' + str(sample_size) + '\n')
+        f.write('Samples gathered for: ' +str(wf.execution_strategy['window_size_for_car_number_change']) + ' ticks\n')
         f.write('The partial clustering was performed on data of size: ' + str(partial_clustering_size) + '\n\n')
         f.write('Avg number of trips per windwo: ' + str(np.average(number_of_trips_per_window)))
         f.write('Features the model trained on: \n')

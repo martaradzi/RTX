@@ -184,8 +184,7 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                if abs(nd['totalCarNumber'] - nd['startCarNumber']) <= 100 or nd['startCarNumber'] == 0:
-
+                                if (nd['totalCarNumber'] - nd['startCarNumber']) <= 100 and (nd['totalCarNumber'] - nd['startCarNumber']) >= 0:
                                     array_overheads.append({'startCarNumber': nd['startCarNumber'], 'totalCarNumber': nd['totalCarNumber'], 'overhead': nd['overhead'], 'duration': nd['duration']})
                                 # print(array_overheads)
                             except StopIteration:
@@ -254,7 +253,7 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
              + " took " + str(duration) + "ms" + " - remaining ~" + str(
             (wf.totalExperiments - wf.experimentCounter) * duration / 1000) + "sec")
     info("> FullState      | " + str(exp["state"]))
-    info("> Number of Messages | " + str(result))
+    info("> Avg Trip duration | " + str(result))
     # log the result values into a csv file
     # log_results(wf.folder, list(exp["knobs"].values()) + [result])
     

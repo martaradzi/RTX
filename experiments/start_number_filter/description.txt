@@ -1,7 +1,9 @@
-The experiment took 4000509ms to run as follows
+The experiment took 4000509ms to run
 Ignored results (in ticks): 2000
-Sample size (in ticks): 20
-Number of cars change  every (in ticks): 3000
+Sample size: 20
+Number of cars change  every (in ticks): 5000
+Data gathered for 3000 tics each time
+
 The partial clustering was performed on data of size: 4
 
 Avg number of trips per windwo: 1189.7Features the model trained on: 
@@ -12,3 +14,5 @@ median_overhead
 q1_overhead
 q3_overhead
 p9_overhead
+
+data was checked for belonging to the appropriate 'car numbers' in the simulation

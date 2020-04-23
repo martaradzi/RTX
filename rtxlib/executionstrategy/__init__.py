@@ -12,7 +12,7 @@ from rtxlib.executionstrategy.UncorrelatedSelfOptimizerStrategy import start_unc
 
 def run_execution_strategy(wf):
     """ we run the correct execution strategy """
-    applyInitKnobs(wf)
+    # applyInitKnobs(wf)
     try:
         # start the right execution strategy
         if wf.execution_strategy["type"] == "sequential":

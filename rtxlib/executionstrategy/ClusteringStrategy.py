@@ -27,7 +27,7 @@ def start_clustering_strategy(wf):
     model_name = '_global_'
     
     feature_array = [
-        'avg_overhead', \
+        # 'avg_overhead', \
         # 'std_overhead', \
         # 'var_overhead', \
         'median_overhead', \
@@ -38,7 +38,7 @@ def start_clustering_strategy(wf):
 
     # create a birch model threshold = 1
     # wandb.init(project='rtx-clustering', name="Two Features Run")
-    birchModel = Birch(n_clusters=None)
+    birchModel = Birch(n_clusters=None, threshold=0.3)
 
     # number_of_submodels_trained = 0
 
@@ -82,8 +82,8 @@ def start_clustering_strategy(wf):
         f.write('Ignored results (in ticks): ' + str(wf.execution_strategy['ignore_first_n_results']) + '\n')
         f.write('Sample size: ' + str(sample_size) + '\n')
         f.write('Samples gathered for: ' +str(wf.execution_strategy['window_size_for_car_number_change']) + ' ticks\n')
-        f.write('The partial clustering was performed on data of size: ' + str(partial_clustering_size) + '\n\n')
-        f.write('Avg number of trips per windwo: ' + str(np.average(number_of_trips_per_window)))
+        f.write('The partial clustering was performed on data of size: ' + str(partial_clustering_size) + '\n')
+        f.write('Avg number of trips per windwo: ' + str(np.int_(np.average(number_of_trips_per_window))) + '\n\n')
         f.write('Features the model trained on: \n')
         for feat in list(data[0].keys())[1:-1]:
             f.write(str(feat) + '\n')

@@ -5,10 +5,10 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_results": 2000,
-    "sample_size": 20,
+    "sample_size": 32,
     "window_size_for_car_number_change": 3000,
     "partial_clustering_size": 5,
-    "save_in": './experiments/start_number_filter_3_less_features/',
+    "save_in": './experiments/start_number_filter_4/',
     "type": "clustering",
 }
 

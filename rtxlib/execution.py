@@ -210,7 +210,7 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                 exp["state"] = cp["data_reducer"](exp["state"], wf, array_overheads)
 
                 new_sample = {'totalCarNumber': exp["state"]['totalCarNumber'], \
-                    'avg_overhead': exp["state"]['avg_overhead'], \
+                    # 'avg_overhead': exp["state"]['avg_overhead'], \
                     # 'std_overhead':  exp["state"]['std_overhead'], \
                     # 'var_overhead': exp["state"]['var_overhead'], \
                     'median_overhead': exp["state"]['median_overhead'], \

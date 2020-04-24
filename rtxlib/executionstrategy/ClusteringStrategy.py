@@ -28,8 +28,8 @@ def start_clustering_strategy(wf):
     
     feature_array = [
         'avg_overhead', \
-        'std_overhead', \
-        'var_overhead', \
+        # 'std_overhead', \
+        # 'var_overhead', \
         'median_overhead', \
         'q1_overhead', \
         'q3_overhead', \

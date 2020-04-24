@@ -211,8 +211,8 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
 
                 new_sample = {'totalCarNumber': exp["state"]['totalCarNumber'], \
                     'avg_overhead': exp["state"]['avg_overhead'], \
-                    'std_overhead':  exp["state"]['std_overhead'], \
-                    'var_overhead': exp["state"]['var_overhead'], \
+                    # 'std_overhead':  exp["state"]['std_overhead'], \
+                    # 'var_overhead': exp["state"]['var_overhead'], \
                     'median_overhead': exp["state"]['median_overhead'], \
                     'q1_overhead': exp["state"]['q1_overhead'], \
                     'q3_overhead': exp["state"]['q3_overhead'], \
@@ -367,64 +367,71 @@ def run_model(model,test_data, model_name, folder):
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: STD')
+    # plt.ylabel('Overhead: STD')
+    plt.ylabel('Overhead: Median')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSstd.png')
     # plt.show()
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: Var')
+    # plt.ylabel('Overhead: Var')
+    plt.ylabel('Overhead: 1st Quartile')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSvar.png')
     # plt.show()
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: Median')
+    # plt.ylabel('Overhead: Median')
+    plt.ylabel('Overhead: 3rd Quartile')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSmedian.png')
     # plt.show()
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 1st Quartile')
+    # plt.ylabel('Overhead: 1st Quartile')
+    plt.ylabel('Overhead: 90 Percentile')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSq1.png')
     # plt.show()
     plt.close()
 
-    plt.scatter(new_array[:,0], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 3rd Quartile')
-    plt.xlabel('car number')
-    plt.savefig(folder+ model_name +'_carVSq3.png')
-    # plt.show()
-    plt.close()
+    # plt.scatter(new_array[:,0], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: 3rd Quartile')
+    # plt.xlabel('car number')
+    # plt.savefig(folder+ model_name +'_carVSq3.png')
+    # # plt.show()
+    # plt.close()
 
-    plt.scatter(new_array[:,0], new_array[:,7], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 90th Percentile')
-    plt.xlabel('car number')
-    plt.savefig(folder+ model_name +'_carVSp90.png')
-    # plt.show()
-    plt.close()
+    # plt.scatter(new_array[:,0], new_array[:,7], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: 90th Percentile')
+    # plt.xlabel('car number')
+    # plt.savefig(folder+ model_name +'_carVSp90.png')
+    # # plt.show()
+    # plt.close()
 
     plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: Variance')
+    # plt.ylabel('Overhead: Variance')
+    plt.ylabel('Overhead: q1')
     plt.xlabel('Overhead: Average')
     plt.savefig(folder + model_name +'_varVS90th.png')
     # plt.show()
     plt.close()
         
-    plt.scatter(new_array[:,5], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 3rd Quartile')
-    plt.xlabel('Overhead: 1st Quartile')
-    plt.savefig(folder + model_name +'_1stVS3rd.png')
-    # plt.show()
-    plt.close()
+    # plt.scatter(new_array[:,5], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: 3rd Quartile')
+    # plt.xlabel('Overhead: 1st Quartile')
+    # plt.savefig(folder + model_name +'_1stVS3rd.png')
+    # # plt.show()
+    # plt.close()
 
     plt.scatter(new_array[:,4], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: STD')
-    plt.xlabel('Overhead: Median')
+    # plt.ylabel('Overhead: STD')
+    plt.ylabel('Overhead: Median')
+    plt.xlabel('Overhead: 3Q')
+    # plt.xlabel('Overhead: Median')
     plt.savefig(folder + model_name +'_medianVSstd.png')
     # plt.show()
     plt.close()

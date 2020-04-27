@@ -38,7 +38,7 @@ def start_clustering_strategy(wf):
 
     # create a birch model threshold = 1
     # wandb.init(project='rtx-clustering', name="Two Features Run")
-    birchModel = Birch(n_clusters=None, threshold=0.3)
+    birchModel = Birch(n_clusters=None, threshold=0.1)
 
     # number_of_submodels_trained = 0
 

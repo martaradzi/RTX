@@ -9,6 +9,9 @@ import seaborn as sns
 from sklearn import metrics
 from sklearn.metrics import pairwise_distances
 from sklearn.decomposition import PCA
+from sklearn import decomposition
+from sklearn.preprocessing import StandardScaler
+
 import json
 
 # import wandb
@@ -326,8 +329,8 @@ def run_model(model,test_data, model_name, folder):
     #     'p9_overhead'
     #     ]
 
-    global pca 
-    pca = PCA()
+    # global pca 
+    # pca = PCA()
     
     feature_array = list(test_data[0].keys())
     data_to_fit = transfrom_to_nparray(test_data, feature_array[1:])
@@ -457,13 +460,23 @@ def run_model(model,test_data, model_name, folder):
     #     big_list.append(x.tolist())
 
 
+    pca = PCA(n_components=2)
+
     pca.fit(data_to_fit)
     plt.plot(np.cumsum(pca.explained_variance_ratio_))
     plt.xlabel('number of components')
     plt.ylabel('cumulative explained variance')
-    plt.savefig(folder + model_name + '_PCA.png')
+    plt.savefig(folder + model_name + '_PCA_explained variance.png')
     plt.close()
-    
+
+    x = StandardScaler().fit_transform(data_to_fit)
+    pca = PCA(n_components=2)
+    principalComponents = pca.fit_transform(x)
+
+    plt.scatter(principalComponents[:,0], principalComponents[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')    
+    plt.show()
+    plt.savefig(folder + model_name + '_PCA.png')
+
     #################################   WRITTING PART    ###################
     
     with open(folder + 'data.csv', 'w') as f:

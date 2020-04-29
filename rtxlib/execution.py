@@ -12,6 +12,8 @@ from sklearn.decomposition import PCA
 from sklearn import decomposition
 from sklearn.preprocessing import StandardScaler
 
+import copy
+
 import json
 
 # import wandb
@@ -278,6 +280,7 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
             model_cpy.set_params(n_clusters=number)
 
             model_cpy.partial_fit()
+
             labels = model_cpy.predict(test_data)
             # print(labels)
             try: 
@@ -293,12 +296,15 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
         plt.ylabel('Silhouette Score')
         plt.savefig(folder + 'silhouette_'+ save_graph_name +'.png')
         # plt.show()
-        plt.close() 
-        max_score = max(silhouette_scores)
-        for i in results_dict:
-            if i[1] == max_score:
-                print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
-                return int(i[0])
+        plt.close()
+        try: 
+            max_score = max(silhouette_scores)
+            for i in results_dict:
+                if i[1] == max_score:
+                    print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
+                    return int(i[0])
+        except ValueError:
+            return n_clusters_min
     else:
         print('couldnt get the scores, plz help')
         print('returning number of clusters = ' + str(n_clusters_min))
@@ -307,17 +313,26 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
 def transfrom_to_nparray(data, feature_array):
     """ Transform the gathered data to numpy array to fit the model's requirements """
     transformed_data = []
+    reshape = False
     for row in data:
-        t = ()
-        for k, v in row.items():
-            if k in feature_array:
-                t = t + (v,)
-        transformed_data.append(t)
-    transformed_data = np.array(transformed_data)
-    return transformed_data
+        # print(row)
+        if len(row) != 1:
+            t = ()
+            for k, v in row.items():
+                if k in feature_array:
+                    t = t + (v,)
+            transformed_data.append(t)
+        else:
+            reshape = True
+    if reshape:
+        print('reshape was invoked')
+        transformed_data = data.reshape(1, -1)
+    # k = np.array(transformed_data)
+    # print(k)
+    return np.array(transformed_data)
 
-def run_model(model,test_data, model_name, folder):
-
+def run_model(model, test_data, model_name, folder, save):
+    """ Run the birch model """
     # LEFT FOR DEBUGGINING
     # feature_array = [
     #     'avg_overhead', \
@@ -329,16 +344,13 @@ def run_model(model,test_data, model_name, folder):
     #     'p9_overhead'
     #     ]
 
-    # global pca 
-    # pca = PCA()
-    
     feature_array = list(test_data[0].keys())
     data_to_fit = transfrom_to_nparray(test_data, feature_array[1:])
 
     n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
     model.set_params(n_clusters = n_clusters)
     model.partial_fit()
-    
+
     labels = model.predict(data_to_fit)
 
     l = len(labels)
@@ -366,125 +378,108 @@ def run_model(model,test_data, model_name, folder):
     plt.ylabel('Overhead: average')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSavg.png')
-    # plt.show()
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: STD')
     plt.ylabel('Overhead: Median')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSstd.png')
-    # plt.show()
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: Var')
     plt.ylabel('Overhead: 1st Quartile')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSvar.png')
-    # plt.show()
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: Median')
     plt.ylabel('Overhead: 3rd Quartile')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSmedian.png')
-    # plt.show()
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: 1st Quartile')
     plt.ylabel('Overhead: 90 Percentile')
     plt.xlabel('car number')
     plt.savefig(folder+ model_name +'_carVSq1.png')
-    # plt.show()
     plt.close()
 
-    # plt.scatter(new_array[:,0], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: 3rd Quartile')
-    # plt.xlabel('car number')
-    # plt.savefig(folder+ model_name +'_carVSq3.png')
-    # # plt.show()
-    # plt.close()
+    # test_data = data
 
-    # plt.scatter(new_array[:,0], new_array[:,7], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: 90th Percentile')
-    # plt.xlabel('car number')
-    # plt.savefig(folder+ model_name +'_carVSp90.png')
-    # # plt.show()
-    # plt.close()
+    # print(test_data)
 
     plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: Variance')
     plt.ylabel('Overhead: q1')
     plt.xlabel('Overhead: Average')
     plt.savefig(folder + model_name +'_varVS90th.png')
-    # plt.show()
     plt.close()
-        
-    # plt.scatter(new_array[:,5], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: 3rd Quartile')
-    # plt.xlabel('Overhead: 1st Quartile')
-    # plt.savefig(folder + model_name +'_1stVS3rd.png')
-    # # plt.show()
-    # plt.close()
+
 
     plt.scatter(new_array[:,4], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    # plt.ylabel('Overhead: STD')
     plt.ylabel('Overhead: Median')
     plt.xlabel('Overhead: 3Q')
-    # plt.xlabel('Overhead: Median')
     plt.savefig(folder + model_name +'_medianVSstd.png')
+    plt.close()
+
+    # pca = PCA(n_components=2)
+
+    # pca.fit(data_to_fit)
+    # plt.plot(np.cumsum(pca.explained_variance_ratio_))
+    # plt.xlabel('number of components')
+    # plt.ylabel('cumulative explained variance')
+    # plt.savefig(folder + model_name + '_PCA_explained variance.png')
+    # plt.close()
+
+    # x = StandardScaler().fit_transform(data_to_fit)
+    # pca = PCA(n_components=2)
+    # principalComponents = pca.fit_transform(x)
+
+    # plt.scatter(principalComponents[:,0], principalComponents[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')    
     # plt.show()
-    plt.close()
-
-    
-    # from mpl_toolkits.mplot3d import Axes3D
-    # fig = plt.figure(figsize=(15,10))
-    # ax = fig.add_subplot(111, projection='3d')
-    # ax.scatter(new_array[:,1], new_array[:,0], new_array[:,2], c=new_array[:,3], cmap='rainbow', alpha=0.8, edgecolors='b')
-    # ax.set_xlabel('Average')
-    # ax.set_ylabel('cars')
-    # ax.set_zlabel('Median')
-    # fig.savefig(folder + model_name + '3D.png')
-
-    # big_list = []
-    # for label in np.unique(np.array(labels)):
-    #     small_list = []
-    #     for d in test_data:
-    #         if d['label'] == label:
-    #             small_list.append(d['totalCarNumber'])
-    #     x = np.array(small_list) 
-    #     x = np.unique(x)
-    #     big_list.append(x.tolist())
-
-
-    pca = PCA(n_components=2)
-
-    pca.fit(data_to_fit)
-    plt.plot(np.cumsum(pca.explained_variance_ratio_))
-    plt.xlabel('number of components')
-    plt.ylabel('cumulative explained variance')
-    plt.savefig(folder + model_name + '_PCA_explained variance.png')
-    plt.close()
-
-    x = StandardScaler().fit_transform(data_to_fit)
-    pca = PCA(n_components=2)
-    principalComponents = pca.fit_transform(x)
-
-    plt.scatter(principalComponents[:,0], principalComponents[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')    
-    plt.show()
-    plt.savefig(folder + model_name + '_PCA.png')
+    # plt.savefig(folder + model_name + '_PCA.png')
 
     #################################   WRITTING PART    ###################
     
-    with open(folder + 'data.csv', 'w') as f:
-        writer = csv.DictWriter(f, fieldnames=feature_array)
-        writer.writeheader()
-        for dictionary in test_data:
-            writer.writerow(dictionary)
-    f.close()
+    if save:
+        with open(folder + 'data.csv', 'w') as f:
+            writer = csv.DictWriter(f, fieldnames=feature_array)
+            writer.writeheader()
+            for dictionary in test_data:
+                writer.writerow(dictionary)
+        f.close()
 
 
+def partial_clustering(model, data, data_for_clustering, feature_array,  folder, name):
+    """ 
+    This function will perform partial clustering and check if new sublcusters 
+    were created in the process of clustering and plot the clusters in case
+    """
 
+    try:
+        pre_number_of_subclusters = len(model.subcluster_labels_)
+        # pre_clusters_centers = model.subcluster_centers_
+    except AttributeError:
+        pre_number_of_subclusters = 0
+
+    try:
+        pre_labels = model.subcluster_labels_
+        print(type(pre_labels))
+    except AttributeError:
+        pre_labels = []
+
+    data_for_clustering = transfrom_to_nparray(data_for_clustering, feature_array)
+    model.partial_fit(data_for_clustering)
+    current_number_of_subclusters =  len(model.subcluster_labels_)
+
+    
+    if pre_number_of_subclusters != current_number_of_subclusters:
+
+        cpy_model = copy.deepcopy(model)
+        run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder, False)
+
+    elif len(pre_labels) != 0:
+        post_labels =  model.subcluster_labels_
+        post_labels = post_labels[:len(pre_labels)]
+        if  np.array_equal(np.array(pre_labels), np.array(post_labels)) == False:
+            cpy_model = copy.deepcopy(model)
+            run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder, False)

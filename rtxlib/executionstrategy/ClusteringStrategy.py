@@ -1,12 +1,14 @@
 from colorama import Fore
 
 from rtxlib import info, error, current_milli_time
-from rtxlib.execution import clusteringExperimentFunction, plot_silhouette_scores, run_model, transfrom_to_nparray
+from rtxlib.execution import transfrom_to_nparray, clusteringExperimentFunction, run_model, partial_clustering
 import os
 
 from sklearn.cluster import Birch
 import numpy as np
 import csv
+import copy
+
 # import wandb
 
 
@@ -23,8 +25,6 @@ def start_clustering_strategy(wf):
     sample_size = wf.execution_strategy["sample_size"]
     partial_clustering_size = wf.execution_strategy['partial_clustering_size']
     # number_of_submodels_trained = 0
-
-    model_name = '_global_'
     
     feature_array = [
         # 'avg_overhead', \
@@ -40,7 +40,7 @@ def start_clustering_strategy(wf):
     # wandb.init(project='rtx-clustering', name="Two Features Run")
     birchModel = Birch(n_clusters=None, threshold=0.1)
 
-    # number_of_submodels_trained = 0
+    number_of_submodels_trained = 1
 
     data = []
     data_for_partial_clustering = []
@@ -48,17 +48,12 @@ def start_clustering_strategy(wf):
 
     number_of_trips_per_window = []
 
-    # with open(folder + 'raw_data.csv', 'a+') as f:
-    #     keys = ['startCarNumber', 'totalCarNumber', 'overhead', 'duration']
-    #     writer = csv.DictWriter(f, fieldnames=keys)
-    #     writer.writeheader()
     while len(data) < sample_size:
         result, new_sample, array_overheads = clusteringExperimentFunction(sample_number, folder, wf, {
             "ignore_first_n_results": wf.execution_strategy['ignore_first_n_results'],
             "window_size": wf.execution_strategy['window_size_for_car_number_change'],
         })                    
-            # for dictionary in array_overheads:
-            #     writer.writerow(dictionary)
+
             
         number_of_trips_per_window.append(len(array_overheads))
 
@@ -68,13 +63,14 @@ def start_clustering_strategy(wf):
 
 
         if len(data_for_partial_clustering) == partial_clustering_size:
-            data_cpy = data_for_partial_clustering
-            data_numpy = transfrom_to_nparray(data_cpy,feature_array)
-            birchModel.partial_fit(data_numpy)
-            data_cpy, data_numpy, data_for_partial_clustering = [], [], []
-    # f.close()
-
-    run_model(birchModel, data, model_name, folder)
+            cpy_data = copy.deepcopy(data)
+            partial_clustering(birchModel, cpy_data, data_for_partial_clustering, feature_array, folder, number_of_submodels_trained)
+            # data_numpy = transfrom_to_nparray(data_cpy,feature_array)
+            # birchModel.partial_fit(data_numpy)
+            data_for_partial_clustering = []
+            number_of_submodels_trained += 1
+    
+    run_model(birchModel, data, 'final_global_', folder, True)
     duration = current_milli_time() - start_time
 
     with open(folder + 'description.txt', 'w+') as f:
@@ -88,6 +84,3 @@ def start_clustering_strategy(wf):
         for feat in list(data[0].keys())[1:-1]:
             f.write(str(feat) + '\n')
     f.close()
-
-
-    # wandb.save("dynamic_car_number_change1.h5")

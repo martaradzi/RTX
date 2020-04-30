@@ -8,7 +8,7 @@ execution_strategy = {
     "sample_size": 30,
     "window_size_for_car_number_change": 3000,
     "partial_clustering_size": 10,
-    "save_in": './experiments/test/',
+    "save_in": './experiments/test1/',
     "type": "clustering",
 }
 

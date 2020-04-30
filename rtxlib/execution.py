@@ -200,7 +200,7 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                                 error("could not reducing data set: " + str(nd))
 
                 i = list(new_tick.values())[0] - sample_beginning_tick
-                process("GatheredData \t| ", i, window_size)
+                process("GatheredData \t\t| ", i, window_size)
 
         print("")
     except StopIteration:
@@ -467,10 +467,9 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
     except AttributeError:
         pre_labels = []
 
-    data_for_clustering = transfrom_to_nparray(data_for_clustering, feature_array)
+    data_for_clustering = exclude_outliers(data_for_clustering, feature_array)
     model.partial_fit(data_for_clustering)
     current_number_of_subclusters =  len(model.subcluster_labels_)
-
     
     if pre_number_of_subclusters != current_number_of_subclusters:
 
@@ -483,3 +482,25 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
         if  np.array_equal(np.array(pre_labels), np.array(post_labels)) == False:
             cpy_model = copy.deepcopy(model)
             run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder, False)
+
+
+def exclude_outliers(partial_clustering_data, feature_array):
+
+    data_for_clustering = transfrom_to_nparray(partial_clustering_data, feature_array)
+    excluded_index = []
+    for i in [0, 1, 2, 3]:
+        ys = data_for_clustering[:,i]
+        median_y = np.median(ys)
+        median_absolute_deviation_y = np.median([np.abs(y - median_y) for y in ys])
+
+        for y in range(len(data_for_clustering)):
+
+            modified_z_score = 0.6745 * (data_for_clustering[y, i] - median_y) / median_absolute_deviation_y
+            
+            if np.abs(modified_z_score) > 3.5:
+                excluded_index.append(y)
+
+    print('number of outliers: ' + str(len(excluded_index)))
+    data_for_clustering = np.delete(data_for_clustering, excluded_index, axis=0)
+    return data_for_clustering
+

@@ -94,7 +94,7 @@ def run_model(model, test_data, model_name, folder, save):
     """ Run the birch model """
 
     feature_array = list(test_data[0].keys())
-    data_to_fit = transfrom_to_nparray(test_data, feature_array[1:])
+    data_to_fit = transfrom_to_nparray(test_data, feature_array[2:])
 
     n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
     model.set_params(n_clusters = n_clusters)
@@ -107,10 +107,10 @@ def run_model(model, test_data, model_name, folder, save):
     new_array = transfrom_to_nparray(test_data, feature_array)
 
     create_graphs(new_array, labels, folder, model_name)
-    
+    info("> New graphs were created")    
     if save:
         write_samples(test_data, folder, feature_array)
-
+        info("> Data was written to a file")
 
 
 def partial_clustering(model, data, data_for_clustering, feature_array,  folder, name):
@@ -119,6 +119,9 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
     were created in the process of clustering and plot the clusters in case there were
 
     """
+    
+    info("> ")
+    info("> Partial clustering")
 
     try:
         pre_number_of_subclusters = len(model.subcluster_labels_)
@@ -133,7 +136,7 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
     
     # check if number of sublusters is the same after partial clustering
     if pre_number_of_subclusters != current_number_of_subclusters:
-
+        info("> Number of sub-clusters changed")
         cpy_model = copy.deepcopy(model)
         run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder, False)
 
@@ -142,10 +145,10 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
         post_labels =  model.subcluster_labels_
         post_labels = post_labels[:len(pre_labels)]
         if  np.array_equal(np.array(pre_labels), np.array(post_labels)) == False:
+            info("> The labels of previous data changed")
             cpy_model = copy.deepcopy(model)
             run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder, False)
-
-
+    
 
 def exclude_outliers_modified_z_score(partial_clustering_data, feature_array):
     """ Calculates the modified z-score for each of the samples for partial clustering

@@ -5,16 +5,14 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_results": 1500,
-    "sample_size": 30,
+    "sample_size": 60,
     "window_size_for_car_number_change": 3000,
-    "partial_clustering_size": 10,
-    "save_in": './experiments/test1/',
+    "partial_clustering_size": 2,
+    "save_in": './experiments/start_car_number_another_long_test/',
     "type": "clustering",
 }
 
 def secondary_data_reducer(state, wf, temp_dict):
-    # cnt = state["count"]
-    # overhead = temp_array[-1]
     state['duration'] = np.average([d['duration'] for d in temp_dict])
     state['totalCarNumber'] = int(np.median([d['totalCarNumber'] for d in temp_dict]))
     state['avg_overhead'] = np.average([d['overhead'] for d in temp_dict])
@@ -24,7 +22,6 @@ def secondary_data_reducer(state, wf, temp_dict):
     state['q1_overhead'] = np.quantile([d['overhead'] for d in temp_dict], .25)
     state['q3_overhead'] = np.quantile([d['overhead'] for d in temp_dict], .75)
     state['p9_overhead'] = (np.percentile([d['overhead'] for d in temp_dict], 90))
-    # state["count"] = cnt + 1
     return state
 
 def primary_data_reducer(state, newData, wf):
@@ -56,16 +53,14 @@ change_provider = {
 }
 
 
-def evaluator(resultState,wf):
-
-    return resultState['duration']
+def evaluator(array_overheads):
+    return len(array_overheads)
 
 
 def state_initializer(state, wf):
     # state['tick'] = 0
     state['totalCarNumber'] = 0
     state['duration'] = 0
-    # state["overhead"] = 0
     state['avg_overhead'] = 0
     state['std_overhead'] = 0   
     state['var_overhead'] = 0
@@ -73,5 +68,4 @@ def state_initializer(state, wf):
     state['q1_overhead'] = 0
     state['q3_overhead'] = 0
     state['p9_overhead'] = 0
-    # state["count"] = 0
     return state

@@ -12,7 +12,7 @@ from rtxlib.executionstrategy.UncorrelatedSelfOptimizerStrategy import start_unc
 
 def run_execution_strategy(wf):
     """ we run the correct execution strategy """
-    applyInitKnobs(wf)
+    # applyInitKnobs(wf)
     try:
         # start the right execution strategy
         if wf.execution_strategy["type"] == "sequential":
@@ -39,7 +39,7 @@ def run_execution_strategy(wf):
             start_forever_strategy(wf)
             
         elif wf.execution_strategy["type"] == "clustering":
-            log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
+            #log_results(wf.folder, list(wf.execution_strategy["knobs"][0].keys()) + ["result"], append=False)
             start_clustering_strategy(wf)
     
     except RuntimeError:

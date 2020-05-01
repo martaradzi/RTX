@@ -1,0 +1,14 @@
+The experiment took 69.22191666666667minutes to run as follows
+Ignored results (in ticks): 2000
+Sample size: 20
+Samples gathered for: 3000 ticks
+The partial clustering was performed on data of size: 5
+
+Avg number of trips per windwo: 1327.8Features the model trained on: 
+avg_overhead
+std_overhead
+var_overhead
+median_overhead
+q1_overhead
+q3_overhead
+p9_overhead

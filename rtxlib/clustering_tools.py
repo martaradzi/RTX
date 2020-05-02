@@ -110,7 +110,7 @@ def run_model(model, test_data, model_name, folder, save):
     info("> New graphs were created") 
     if save:
         write_samples(test_data, folder, feature_array)
-            info("> Data was written to a file")
+        info("> Data was written to a file")
 
 
 def partial_clustering(model, data, data_for_clustering, feature_array,  folder, name):
@@ -182,7 +182,7 @@ def write_raw_data(data, folder):
             keys = data[0].keys()
             writer = csv.DictWriter(f, fieldnames=keys)
             for dictionary in data:
-                writer.writerow(dictionary)\
+                writer.writerow(dictionary)
         except IndexError:
             # a sample with no data
             pass

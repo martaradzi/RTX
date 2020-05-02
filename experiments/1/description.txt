@@ -1,0 +1,11 @@
+The experiment took 525.37665 minutes to run as follows
+Ignored results (in ticks): 1500
+Sample size: 140
+Samples gathered for: 3000 ticks
+The partial clustering was performed on data of size: 20
+Features the model trained on: 
+
+median_overhead
+q1_overhead
+q3_overhead
+p9_overhead

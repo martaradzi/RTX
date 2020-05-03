@@ -1,3 +1,4 @@
+from colorama import Fore
 from rtxlib import info
 from sklearn.cluster import Birch
 from sklearn import metrics
@@ -79,24 +80,24 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
             for i in results_dict:
                 if i[1] == max_score:
                     # print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
-                    info("> Optimal number of clusters  | " + str(int(i[0])))
+                    info("> Optimal number of clusters  | " + str(int(i[0])), Fore.CYAN)
                     return int(i[0])
         except ValueError:
-            info("> Optimal number of clusters  | " + str(n_clusters_min))
+            info("> Optimal number of clusters  | " + str(n_clusters_min), Fore.CYAN)
             return n_clusters_min
     else:
-        info("> Optimal number of clusters  | " + str(n_clusters_min))
+        info("> Optimal number of clusters  | " + str(n_clusters_min), Fore.CYAN)
         return n_clusters_min
 
 
 
-def run_model(model, test_data, model_name, folder, save):
+def run_model(model, test_data, model_name, folder):
     """ Run the birch model """
 
     feature_array = list(test_data[0].keys())
     data_to_fit = transfrom_to_nparray(test_data, feature_array[2:])
 
-    n_clusters = plot_silhouette_scores(model, data_to_fit, 3, 10, folder, ('global_fit_' + model_name))
+    n_clusters = plot_silhouette_scores(model, data_to_fit, 2, 10, folder, ('global_fit_' + model_name))
     model.set_params(n_clusters = n_clusters)
     model.partial_fit()
     labels = model.predict(data_to_fit)
@@ -107,10 +108,10 @@ def run_model(model, test_data, model_name, folder, save):
     new_array = transfrom_to_nparray(test_data, feature_array)
 
     create_graphs(new_array, labels, folder, model_name)
-    info("> New graphs were created") 
-    if save:
-        write_samples(test_data, folder, feature_array)
-        info("> Data was written to a file")
+    info("> New graphs were created", Fore.CYAN) 
+    # if save:
+    #     write_samples(test_data, folder, feature_array)
+    #     info("> Data was written to a file")
 
 
 def partial_clustering(model, data, data_for_clustering, feature_array,  folder, name):
@@ -119,7 +120,7 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
     were created in the process of clustering and plot the clusters in case there were
 
     """
-
+    info("> ") 
     try:
         pre_number_of_subclusters = len(model.subcluster_labels_)
         pre_labels = model.subcluster_labels_
@@ -127,23 +128,24 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
         pre_number_of_subclusters = 0
         pre_labels = []
 
-    data_for_clustering =  exclude_outliers_modified_z_score(data_for_clustering, feature_array)
+    data_for_clustering =  exclude_outliers_modified_z_score(data_for_clustering, feature_array[2:])
     model.partial_fit(data_for_clustering)
     current_number_of_subclusters =  len(model.subcluster_labels_)
-    
+
+    info("> Partial clustering performed", Fore.CYAN)    
     # check if number of sublusters is the same after partial clustering
     if pre_number_of_subclusters != current_number_of_subclusters:
 
         cpy_model = copy.deepcopy(model)
-        run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder, False)
+        run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder)
 
     # check if the labels before and after partial clustering are the same
     elif len(pre_labels) != 0:
         post_labels =  model.subcluster_labels_
         post_labels = post_labels[:len(pre_labels)]
-        if  np.array_equal(np.array(pre_labels), np.array(post_labels)) == False:
+        if not np.array_equal(np.array(pre_labels), np.array(post_labels)):
             cpy_model = copy.deepcopy(model)
-            run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder, False)
+            run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder)
 
 
 
@@ -168,21 +170,23 @@ def exclude_outliers_modified_z_score(partial_clustering_data, feature_array):
             if np.abs(modified_z_score) > 3.5:
                 excluded_index.append(y)
 
-    info("> Number of outliers detected | " + str(len(excluded_index)))
+    info("> Number of outliers detected | " + str(len(excluded_index)), Fore.CYAN)
     data_for_clustering = np.delete(data_for_clustering, excluded_index, axis=0)
     return data_for_clustering
 
 
 
-def write_raw_data(data, folder):
+def write_raw_data(data, folder, features, header):
     """ Write the raw data of the experiment """
 
     with open(folder + 'raw_data.csv', 'a+') as f:
         try:
-            keys = data[0].keys()
-            writer = csv.DictWriter(f, fieldnames=keys)
-            for dictionary in data:
-                writer.writerow(dictionary)
+            writer = csv.DictWriter(f, fieldnames=features)
+            if header:
+                writer.writeheader()
+            else:
+                for dictionary in data:
+                    writer.writerow(dictionary)
         except IndexError:
             # a sample with no data
             pass
@@ -190,13 +194,16 @@ def write_raw_data(data, folder):
 
 
 
-def write_samples(data, folder, feature_array):
+def write_samples(sample, folder, feature_array, header):
     """ Write the data the model was trained on as well as the labels created after clustering"""
-    with open(folder + 'data.csv', 'w') as f:
+    with open(folder + 'data.csv', 'a+') as f:
         writer = csv.DictWriter(f, fieldnames=feature_array)
-        writer.writeheader()
-        for dictionary in data:
-            writer.writerow(dictionary)
+        if header:
+            writer.writeheader()
+        else:
+            # for dictionary in data:
+            #     writer.writerow(dictionary)
+            writer.writerow(sample)
     f.close()
 
 

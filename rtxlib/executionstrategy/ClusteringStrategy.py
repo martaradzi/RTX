@@ -3,7 +3,7 @@ import os
 from colorama import Fore
 from rtxlib import info, error, current_milli_time
 from rtxlib.execution import clusteringExperimentFunction
-from rtxlib.clustering_tools import run_model, partial_clustering, write_description
+from rtxlib.clustering_tools import run_model, partial_clustering, write_description, write_raw_data, write_samples
 
 from sklearn.cluster import Birch
 import numpy as np
@@ -14,7 +14,7 @@ import copy
 def start_clustering_strategy(wf):
     """ executes all experiments from the definition file """
 
-    info("> ExecStrategy   | BirchClustering", Fore.CYAN)
+    info("> ExecStrategy   | BIRCH Clustering", Fore.CYAN)
     wf.totalExperiments = wf.execution_strategy["sample_size"]
     
     start_time = current_milli_time()
@@ -26,14 +26,20 @@ def start_clustering_strategy(wf):
     partial_clustering_size = wf.execution_strategy['partial_clustering_size']
     
     feature_array = [
-        # 'avg_overhead',
-        # 'std_overhead',
-        # 'var_overhead',
+        'totalCarNumber',
+        'numberOfTrips',
         'median_overhead',
         'q1_overhead',
         'q3_overhead',
         'p9_overhead',
         ]
+        
+    features_for_raw_data = [
+        'startCarNumber',
+        'totalCarNumber',
+        'overhead',
+        'duration',
+    ]
 
     # wandb.init(project='rtx-clustering', name="Two Features Run")
     birchModel = Birch(n_clusters=None, threshold=0.1)
@@ -44,24 +50,32 @@ def start_clustering_strategy(wf):
     data_for_partial_clustering = []
     sample_number = 0
 
-    while len(data) < sample_size:
+    write_raw_data(None, folder,features_for_raw_data, header=True)
+    write_samples(None, folder, feature_array, header = True)
+
+    while sample_number < sample_size:
         result, new_sample= clusteringExperimentFunction(sample_number, folder, wf, {
             "ignore_first_n_results": wf.execution_strategy['ignore_first_n_results'],
             "window_size": wf.execution_strategy['window_size_for_car_number_change'],
         })                    
 
-        # number_of_trips_per_window.append(len(array_overheads))
+        if new_sample is not None:
+            sample_number += 1
+            data_for_partial_clustering.append(new_sample)
+            write_samples(new_sample, folder, feature_array, False)
+            
+            if len(data) == 50:
+                data.pop(0)
+                data.append(new_sample)
+            else:
+                data.append(new_sample)
 
-        sample_number += 1
-        data.append(new_sample)
-        data_for_partial_clustering.append(new_sample)
-
-        # run partial clustering when the specified number of samples was created 
-        if len(data_for_partial_clustering) == partial_clustering_size:
-            cpy_data = copy.deepcopy(data)
-            partial_clustering(birchModel, cpy_data, data_for_partial_clustering, feature_array, folder, number_of_submodels_trained)
-            data_for_partial_clustering = []
-            number_of_submodels_trained += 1
+            # run partial clustering when the specified number of samples was created 
+            if len(data_for_partial_clustering) == partial_clustering_size:
+                cpy_data = copy.deepcopy(data)
+                partial_clustering(birchModel, cpy_data, data_for_partial_clustering, feature_array, folder, number_of_submodels_trained)
+                data_for_partial_clustering = []
+                number_of_submodels_trained += 1
 
     # at the end of the gathering process, if there is still data left for parial clustering, cluster it.
     if sample_number % partial_clustering_size != 0:
@@ -71,7 +85,7 @@ def start_clustering_strategy(wf):
         number_of_submodels_trained += 1
     
     # run the global clustering
-    run_model(birchModel, data, 'final_global_', folder, True)
+    run_model(birchModel, data, 'final_global_', folder)
     
     
     duration = current_milli_time() - start_time

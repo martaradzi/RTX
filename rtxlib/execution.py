@@ -213,13 +213,8 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                 error("could not reducing data set")
 
     # Write the gathered data into a file
-    
-
     if len(array_overheads) != 0:
-        write_raw_data(array_overheads, folder)
-    #     new_sample_boolen = True
-    # else:
-    #     new_sample_boolen = False
+        write_raw_data(array_overheads, folder, array_overheads[0].keys(), header=False)
 
     try:
         result = wf.evaluator(array_overheads)

@@ -197,7 +197,7 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                             'numberOfTrips':    len(array_overheads),
                     #       'avg_overhead':     exp["state"]['avg_overhead'],
                     #       'std_overhead':     exp["state"]['std_overhead'],
-                            'var_overhead':     exp["state"]['var_overhead'],
+                            # 'var_overhead':     exp["state"]['var_overhead'],
                             'median_overhead':  exp["state"]['median_overhead'],
                             'q1_overhead':      exp["state"]['q1_overhead'],
                             'q3_overhead':      exp["state"]['q3_overhead'],

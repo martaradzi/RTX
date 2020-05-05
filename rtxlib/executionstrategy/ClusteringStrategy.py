@@ -28,7 +28,6 @@ def start_clustering_strategy(wf):
     feature_array = [
         'totalCarNumber',
         'numberOfTrips',
-        'var_overhead',
         'median_overhead',
         'q1_overhead',
         'q3_overhead',

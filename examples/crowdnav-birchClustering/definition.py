@@ -3,10 +3,10 @@ import numpy as np
 name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
-    "ignore_first_n_results": 2000,
+    "ignore_first_n_ticks": 2000,
     "sample_size": 50,
-    "window_size_for_car_number_change": 4000,
-    "partial_clustering_size": 10,
+    "ticks_per_sample": 4000,
+    "partial_clustering_sample_size": 10,
     "save_in": './experiments/trip_duration_just_ignore_2/',
     "type": "clustering",
 }

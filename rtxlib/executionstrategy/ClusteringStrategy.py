@@ -23,7 +23,7 @@ def start_clustering_strategy(wf):
     os.makedirs(os.path.dirname(folder), exist_ok=True)
 
     sample_size = wf.execution_strategy["sample_size"]
-    partial_clustering_size = wf.execution_strategy['partial_clustering_size']
+    partial_clustering_size = wf.execution_strategy['partial_clustering_sample_size']
     
     feature_array = [
         'totalCarNumber',
@@ -56,8 +56,8 @@ def start_clustering_strategy(wf):
 
     while sample_number < sample_size:
         result, new_sample= clusteringExperimentFunction(sample_number, folder, wf, {
-            "ignore_first_n_results": wf.execution_strategy['ignore_first_n_results'],
-            "window_size": wf.execution_strategy['window_size_for_car_number_change'],
+            "ignore_first_n_results": wf.execution_strategy['ignore_first_n_ticks'],
+            "window_size": wf.execution_strategy['ticks_per_sample'],
         })                    
 
         if new_sample is not None:
@@ -88,8 +88,7 @@ def start_clustering_strategy(wf):
     # run the global clustering
     run_model(birchModel, data, 'final_global_', folder)
     
-    
     duration = current_milli_time() - start_time
 
-    write_description(duration, sample_size, partial_clustering_size, feature_array, folder, wf)
+    write_description(duration, feature_array, folder, wf)
 

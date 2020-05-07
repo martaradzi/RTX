@@ -165,9 +165,9 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                         new_data = cp["instance"].returnDataListNonBlocking()
                         for nd in new_data:
                             try:
-                                # check if trips started in the current iteration of the car change
-#                                 if (nd['totalCarNumber'] - nd['startCarNumber']) <= 100 and (nd['totalCarNumber'] - nd['startCarNumber']) >= 0:
-                                array_overheads.append({'startCarNumber':   nd['startCarNumber'], 
+#                                 check if trips started in the current iteration of the car change
+                                if (nd['totalCarNumber'] - nd['startCarNumber']) <= 100 and (nd['totalCarNumber'] - nd['startCarNumber']) >= 0:
+                                    array_overheads.append({'startCarNumber':   nd['startCarNumber'], 
                                                             'totalCarNumber':   nd['totalCarNumber'], 
                                                             'overhead':         nd['overhead'], 
                                                             'duration':         nd['duration'],

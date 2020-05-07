@@ -1,3 +1,4 @@
+# Simple sequantial run of knob values
 import numpy as np
 
 name = "CrowdNav-BirchClustering"
@@ -5,9 +6,9 @@ name = "CrowdNav-BirchClustering"
 execution_strategy = {
     "ignore_first_n_ticks": 2000,
     "sample_size": 50,
-    "ticks_per_sample": 4000,
+    "ticks_per_sample": 3000,
     "partial_clustering_sample_size": 10,
-    "save_in": './experiments/trip_duration_just_ignore_2/',
+    "save_in": './experiments/3/',
     "type": "clustering",
 }
 
@@ -68,7 +69,3 @@ def state_initializer(state, wf):
     state['q3_overhead'] = 0
     state['p9_overhead'] = 0
     return state
-
-
-
-

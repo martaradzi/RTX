@@ -230,42 +230,44 @@ def create_graphs(new_array, labels, folder, model_name):
     plt.scatter(new_array[:,0], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: Median')
     plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVSstd.png')
+    plt.savefig(folder+ model_name +'_carVSmedian.png')
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 1st Quartile')
     plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVSvar.png')
+    plt.savefig(folder+ model_name +'_carVSq1.png')
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 3rd Quartile')
     plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVSmedian.png')
+    plt.savefig(folder+ model_name +'_carVq3.png')
     plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 90 Percentile')
     plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVSq1.png')
+    plt.savefig(folder+ model_name +'_carVSp90.png')
     plt.close()
 
     plt.scatter(new_array[:,2], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 1st Quartile')
     plt.xlabel('Overhead: Median')
-    plt.savefig(folder + model_name +'_varVS90th.png')
+    plt.savefig(folder + model_name +'_q1VSmedian.png')
     plt.close()
 
 
     plt.scatter(new_array[:,4], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: Median')
     plt.xlabel('Overhead: 3rd Quartile')
-    plt.savefig(folder + model_name +'_medianVSstd.png')
+    plt.savefig(folder + model_name +'_medianVSq3.png')
     plt.close()
 
 
 def pca_plotting(data, labels,  folder, model_name,):
+    """ Plot the Principal Components instead of features """
+
     pca = PCA(n_components=2)
     principalComponents = pca.fit_transform(data)
 

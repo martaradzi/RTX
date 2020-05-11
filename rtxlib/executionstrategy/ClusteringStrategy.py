@@ -64,11 +64,14 @@ def start_clustering_strategy(wf):
             data_for_partial_clustering.append(new_sample)
             write_samples(new_sample, folder, feature_array, False)
             
-            if len(data) == 50:
-                data.pop(0)
-                data.append(new_sample)
-            else:
-                data.append(new_sample)
+            # Configure the maximum number of samples stored in memory
+            # if len(data) == 50:
+            #     data.pop(0)
+            #     data.append(new_sample)
+            # else:
+            #     data.append(new_sample)
+
+            data.append(new_sample)
 
             # run partial clustering when the specified number of samples was created 
             if len(data_for_partial_clustering) == partial_clustering_size:

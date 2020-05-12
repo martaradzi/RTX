@@ -167,7 +167,9 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
                             try:
 #                                 check if trips started in the current iteration of the car change
                                 if (nd['totalCarNumber'] - nd['startCarNumber']) <= 100 and (nd['totalCarNumber'] - nd['startCarNumber']) >= 0:
-                                    array_overheads.append({'startCarNumber':   nd['startCarNumber'], 
+                                    array_overheads.append({
+                                                            # 'tick':             nd['tick'],
+                                                            'startCarNumber':   nd['startCarNumber'], 
                                                             'totalCarNumber':   nd['totalCarNumber'], 
                                                             'overhead':         nd['overhead'], 
                                                             'duration':         nd['duration'],
@@ -193,16 +195,18 @@ def clusteringExperimentFunction(sample_number, folder, wf, exp):
             try:
                 exp["state"] = cp["data_reducer"](exp["state"], wf, array_overheads)
 
-                new_sample = {'totalCarNumber': exp["state"]['totalCarNumber'],
+                new_sample = {
+                            'index':            sample_number,
+                            'totalCarNumber':   exp["state"]['totalCarNumber'],
                             'numberOfTrips':    len(array_overheads),
                     #       'avg_overhead':     exp["state"]['avg_overhead'],
                     #       'std_overhead':     exp["state"]['std_overhead'],
-                            # 'var_overhead':     exp["state"]['var_overhead'],
+                    #       'var_overhead':     exp["state"]['var_overhead'],
                             'median_overhead':  exp["state"]['median_overhead'],
                             'q1_overhead':      exp["state"]['q1_overhead'],
                             'q3_overhead':      exp["state"]['q3_overhead'],
                             'p9_overhead':      exp["state"]['p9_overhead'],
-                    #       'duration': exp["state"]['duration']
+                    #       'duration':         exp["state"]['duration']
                     }
 
             except StopIteration:

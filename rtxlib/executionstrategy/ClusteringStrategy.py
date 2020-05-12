@@ -26,6 +26,7 @@ def start_clustering_strategy(wf):
     partial_clustering_size = wf.execution_strategy['partial_clustering_sample_size']
     
     feature_array = [
+        'index',
         'totalCarNumber',
         'numberOfTrips',
         'median_overhead',
@@ -35,6 +36,7 @@ def start_clustering_strategy(wf):
         ]
         
     features_for_raw_data = [
+        # 'tick',
         'startCarNumber',
         'totalCarNumber',
         'overhead',
@@ -88,7 +90,7 @@ def start_clustering_strategy(wf):
         number_of_submodels_trained += 1
     
     # run the global clustering
-    run_model(birchModel, data, 'final_global_', folder)
+    run_model(birchModel, data, 'final_', folder)
     
     duration = current_milli_time() - start_time
 

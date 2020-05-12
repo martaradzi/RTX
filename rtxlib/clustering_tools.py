@@ -96,7 +96,7 @@ def run_model(model, test_data, model_name, folder):
     """ Run the birch model """
 
     feature_array = list(test_data[0].keys())
-    data_to_fit = transfrom_to_nparray(test_data, feature_array[2:])
+    data_to_fit = transfrom_to_nparray(test_data, feature_array[3:])
 
     n_clusters = plot_silhouette_scores(model, data_to_fit, 2, 10, folder, ('global_fit_' + model_name))
     model.set_params(n_clusters = n_clusters)
@@ -109,11 +109,8 @@ def run_model(model, test_data, model_name, folder):
     new_array = transfrom_to_nparray(test_data, feature_array)
 
     create_graphs(new_array, labels, folder, model_name)
-    pca_plotting(new_array[:, 1:5], labels, folder, model_name)
+    pca_plotting(new_array[:, 3:6], labels, folder, model_name)
     info("> New graphs were created", Fore.CYAN) 
-    # if save:
-    #     write_samples(test_data, folder, feature_array)
-    #     info("> Data was written to a file")
 
 
 def partial_clustering(model, data, data_for_clustering, feature_array,  folder, name):
@@ -130,7 +127,7 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
         pre_number_of_subclusters = 0
         pre_labels = []
 
-    data_for_clustering =  exclude_outliers_modified_z_score(data_for_clustering, feature_array[2:])
+    data_for_clustering =  exclude_outliers_modified_z_score(data_for_clustering, feature_array[3:])
     model.partial_fit(data_for_clustering)
     current_number_of_subclusters =  len(model.subcluster_labels_)
 
@@ -227,41 +224,47 @@ def write_description(duration, feature_array, folder, wf):
 
 def create_graphs(new_array, labels, folder, model_name):
 
-    plt.scatter(new_array[:,0], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: Median')
     plt.xlabel('Car Number')
     plt.savefig(folder+ model_name +'_carVSmedian.png')
     plt.close()
 
-    plt.scatter(new_array[:,0], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(new_array[:,1], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 1st Quartile')
     plt.xlabel('Car Number')
     plt.savefig(folder+ model_name +'_carVSq1.png')
     plt.close()
 
-    plt.scatter(new_array[:,0], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(new_array[:,1], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 3rd Quartile')
     plt.xlabel('Car Number')
     plt.savefig(folder+ model_name +'_carVq3.png')
     plt.close()
 
-    plt.scatter(new_array[:,0], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(new_array[:,1], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 90 Percentile')
     plt.xlabel('Car Number')
     plt.savefig(folder+ model_name +'_carVSp90.png')
     plt.close()
 
-    plt.scatter(new_array[:,2], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(new_array[:,3], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: 1st Quartile')
     plt.xlabel('Overhead: Median')
     plt.savefig(folder + model_name +'_q1VSmedian.png')
     plt.close()
 
 
-    plt.scatter(new_array[:,4], new_array[:,2], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.scatter(new_array[:,5], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: Median')
     plt.xlabel('Overhead: 3rd Quartile')
     plt.savefig(folder + model_name +'_medianVSq3.png')
+    plt.close()
+
+    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Number of cars')
+    plt.xlabel('Time')
+    plt.savefig(folder + model_name +'_time_cars.png')
     plt.close()
 
 

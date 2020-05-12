@@ -5,9 +5,9 @@ name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
     "ignore_first_n_ticks": 2000,
-    "sample_size": 50,
+    "sample_size": 144,
     "ticks_per_sample": 3000,
-    "partial_clustering_sample_size": 10,
+    "partial_clustering_sample_size": 18,
     "save_in": './experiments/3/',
     "type": "clustering",
 }

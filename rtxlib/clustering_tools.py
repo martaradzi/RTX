@@ -195,20 +195,19 @@ def write_raw_data(data, folder, features, header):
 
 def write_samples(sample, folder, feature_array, header):
     """ Write the data the model was trained on as well as the labels created after clustering"""
+    
     with open(folder + 'data.csv', 'a+') as f:
         writer = csv.DictWriter(f, fieldnames=feature_array)
         if header:
             writer.writeheader()
         else:
-            # for dictionary in data:
-            #     writer.writerow(dictionary)
             writer.writerow(sample)
     f.close()
 
 
 
 def write_description(duration, feature_array, folder, wf):
-
+    ''' Writting the description file '''
     with open(folder + 'description.txt', 'w+') as f:
         f.write('The experiment took ' + str(duration/60000) + ' minutes to run as follows\n')
         f.write('Ignored results (in ticks): ' + str(wf.execution_strategy['ignore_first_n_ticks']) + '\n')
@@ -223,6 +222,7 @@ def write_description(duration, feature_array, folder, wf):
 
 
 def create_graphs(new_array, labels, folder, model_name):
+    '''plotting graphs for partial and global clustering for result inspection'''
 
     plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: Median')

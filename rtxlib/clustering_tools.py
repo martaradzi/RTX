@@ -201,7 +201,10 @@ def write_samples(sample, folder, feature_array, header):
         if header:
             writer.writeheader()
         else:
-            writer.writerow(sample)
+            try: 
+                writer.writerow(sample)
+            except:
+                pass
     f.close()
 
 

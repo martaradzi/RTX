@@ -8,7 +8,7 @@ execution_strategy = {
     "sample_size": 288,
     "ticks_per_sample": 3500,
     "partial_clustering_sample_size": 18,
-    "save_in": './experiments/5/',
+    "save_in": './experiments/6/',
     "type": "clustering",
 }
 

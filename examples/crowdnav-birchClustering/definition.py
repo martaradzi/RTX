@@ -4,11 +4,11 @@ import numpy as np
 name = "CrowdNav-BirchClustering"
 
 execution_strategy = {
-    "ignore_first_n_ticks": 1500,
+    "ignore_first_n_ticks": 2000,
     "sample_size": 288,
-    "ticks_per_sample": 3500,
+    "ticks_per_sample": 3000,
     "partial_clustering_sample_size": 18,
-    "save_in": './experiments/6/',
+    "save_in": './experiments/8/',
     "type": "clustering",
 }
 

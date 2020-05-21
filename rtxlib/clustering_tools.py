@@ -28,7 +28,7 @@ def transfrom_to_nparray(data, feature_array):
     reshape = False # after many iteration, it might happen that there is only one data sample
     for row in data:
         # print(row)
-        if len(row) != 1:
+        if isinstance(row, dict):
             t = ()
             for k, v in row.items():
                 if k in feature_array:

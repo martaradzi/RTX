@@ -37,9 +37,11 @@ def transfrom_to_nparray(data, feature_array):
         else:
             reshape = True
     if reshape:
-        transformed_data = data.reshape(1, -1)
+        data = np.array(data)
+        return data.reshape(1, -1)
+    else:
+        return np.array(transformed_data)
 
-    return np.array(transformed_data)
 
 @ignore_warnings(category=ConvergenceWarning)
 def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, folder, save_graph_name):

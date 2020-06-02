@@ -1,9 +1,0 @@
-experiment was run with:
-80 000 ticks
-change of cars every 1000 ticks
-partial fit every 4000 ticks
-
-features:
-- variance of overhead
-- 90th percentile of overhead
-

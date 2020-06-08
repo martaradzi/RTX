@@ -17,7 +17,6 @@ from sklearn.exceptions import ConvergenceWarning
 
 # import wandb
 
-
 def transfrom_to_nparray(data, feature_array):
     """ Transform the gathered data to numpy array to fit the model's requirements,
         only use the features spcified in feature array

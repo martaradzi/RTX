@@ -8,7 +8,7 @@ from rtxlib.clustering_tools import run_model, partial_clustering, write_descrip
 from sklearn.cluster import Birch
 import numpy as np
 import copy
-# import wandb
+import wandb
 
 
 def start_clustering_strategy(wf):
@@ -43,7 +43,7 @@ def start_clustering_strategy(wf):
         'duration',
     ]
 
-    # wandb.init(project='rtx-clustering', name="Two Features Run")
+    wandb.init(project='CrowdNav_BIRCH_clustering')
     birchModel = Birch(n_clusters=None, threshold=0.1)
 
     number_of_submodels_trained = 1

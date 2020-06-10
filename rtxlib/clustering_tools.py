@@ -15,7 +15,7 @@ import csv
 from sklearn.utils.testing import ignore_warnings
 from sklearn.exceptions import ConvergenceWarning
 
-# import wandb
+import wandb
 
 def transfrom_to_nparray(data, feature_array):
     """ Transform the gathered data to numpy array to fit the model's requirements,
@@ -111,6 +111,10 @@ def run_model(model, test_data, model_name, folder):
 
     create_graphs(new_array, labels, folder, model_name)
     pca_plotting(new_array[:, 3:6], labels, folder, model_name)
+
+    wandb.sklearn.plot_clusterer(model, new_array[:, 3:6], labels, labels=None, model_name=model_name)
+
+
     info("> New graphs were created", Fore.CYAN) 
 
 

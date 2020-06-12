@@ -66,10 +66,10 @@ class kMeans:
         labels = np.zeros(len(data))
         for instance in range(len(data)):
             for cluster in range(self.k):
-                print(self.centroids)
-                print(self.centroids[cluster])
+#                 print(self.centroids)
+#                 print(self.centroids[cluster])
                 # print(instance)
-                print(data[instance])
+#                 print(data[instance])
                 # print(distance_instance_to_clusters[instance, cluster])
                 distance_instance_to_clusters[instance, cluster] = euclidean_distance(data[instance], self.centroids[cluster])
             labels[instance] = np.argmin(distance_instance_to_clusters[instance])
@@ -101,6 +101,7 @@ class kMeans:
         figure, axs = plt.subplots(nrows=1, ncols=2,figsize=(14,4))                       
 
         axs[0].scatter(data[:,5], data[:,4], c=labels, cmap='rainbow', alpha=0.7)
+        axs[0]..set_ylim(0, 750)
         axs[0].set_ylabel('Number of cars')
         axs[0].set_xlabel('Time')
 

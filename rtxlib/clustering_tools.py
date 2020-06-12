@@ -70,12 +70,12 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
                 pass
 
         silhouette_range = [i[0] for i in results_dict]  
-        plt.plot(silhouette_range[:], silhouette_scores[:])
-        plt.xlabel('Number Of Clusers')
-        plt.ylabel('Silhouette Score')
-        plt.savefig(folder + 'silhouette_'+ save_graph_name +'.png')
+#         plt.plot(silhouette_range[:], silhouette_scores[:])
+#         plt.xlabel('Number Of Clusers')
+#         plt.ylabel('Silhouette Score')
+#         plt.savefig(folder + 'silhouette_'+ save_graph_name +'.png')
         # plt.show()
-        plt.close()
+#         plt.close()
         try: 
             max_score = max(silhouette_scores)
             for i in results_dict:
@@ -83,7 +83,10 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
                     # print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
                     info("> Optimal number of clusters  | " + str(int(i[0])), Fore.CYAN)
                     info("> Silhouette Score     | " + str(max_score), Fore.CYAN)
+                    wandb.log({f'Silhouette Score': max_score,
+                              f'Number of clusters': int(i[0])})
                     return int(i[0])
+                
         except ValueError:
             info("> Returned Minimal Number of Clusters  | " + str(n_clusters_min), Fore.CYAN)
             return n_clusters_min
@@ -232,6 +235,13 @@ def write_description(duration, feature_array, folder, wf):
 def create_graphs(new_array, labels, folder, model_name):
     '''plotting graphs for partial and global clustering for result inspection'''
 
+    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    plt.ylabel('Car Number')
+    plt.xlabel('Index')
+    plt.savefig(folder + model_name +'_car_over_time.png')
+    wandb.log({f'Fit_{model_name}': plt})
+    plt.close()
+    
     plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Overhead: Median')
     plt.xlabel('Car Number')

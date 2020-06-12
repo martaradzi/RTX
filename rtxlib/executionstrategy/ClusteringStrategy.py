@@ -43,7 +43,7 @@ def start_clustering_strategy(wf):
         'duration',
     ]
 
-    wandb.init(project='CrowdNav_BIRCH_clustering')
+    wandb.init(project='CrowdNav_BIRCH_clustering', name='Repetition4')
     birchModel = Birch(n_clusters=None, threshold=0.1)
 
     number_of_submodels_trained = 1

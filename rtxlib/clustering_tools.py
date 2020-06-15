@@ -15,7 +15,7 @@ import csv
 from sklearn.utils.testing import ignore_warnings
 from sklearn.exceptions import ConvergenceWarning
 
-#import wandb
+# import wandb
 
 def transfrom_to_nparray(data, feature_array):
     """ Transform the gathered data to numpy array to fit the model's requirements,
@@ -116,8 +116,6 @@ def run_model(model, test_data, model_name, folder):
     pca_plotting(new_array[:, 3:6], labels, folder, model_name)
 
     #wandb.sklearn.plot_clusterer(model, new_array[:, 3:6], labels, labels=None, model_name=model_name)
-
-
     info("> New graphs were created", Fore.CYAN) 
 
 
@@ -234,50 +232,43 @@ def write_description(duration, feature_array, folder, wf):
 
 def create_graphs(new_array, labels, folder, model_name):
     '''plotting graphs for partial and global clustering for result inspection'''
-
-    plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Car Number')
-    plt.xlabel('Index')
-    plt.savefig(folder + model_name +'_car_over_time.png')
-    #wandb.log({f'Fit_{model_name}': plt})
-    plt.close()
     
-    plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: Median')
-    plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVSmedian.png')
-    plt.close()
+    # plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: Median')
+    # plt.xlabel('Car Number')
+    # plt.savefig(folder+ model_name +'_carVSmedian.png')
+    # plt.close()
 
-    plt.scatter(new_array[:,1], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 1st Quartile')
-    plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVSq1.png')
-    plt.close()
+    # plt.scatter(new_array[:,1], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: 1st Quartile')
+    # plt.xlabel('Car Number')
+    # plt.savefig(folder+ model_name +'_carVSq1.png')
+    # plt.close()
 
-    plt.scatter(new_array[:,1], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 3rd Quartile')
-    plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVq3.png')
-    plt.close()
+    # plt.scatter(new_array[:,1], new_array[:,5], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: 3rd Quartile')
+    # plt.xlabel('Car Number')
+    # plt.savefig(folder+ model_name +'_carVq3.png')
+    # plt.close()
 
-    plt.scatter(new_array[:,1], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 90 Percentile')
-    plt.xlabel('Car Number')
-    plt.savefig(folder+ model_name +'_carVSp90.png')
-    plt.close()
+    # plt.scatter(new_array[:,1], new_array[:,6], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: 90 Percentile')
+    # plt.xlabel('Car Number')
+    # plt.savefig(folder+ model_name +'_carVSp90.png')
+    # plt.close()
 
-    plt.scatter(new_array[:,3], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: 1st Quartile')
-    plt.xlabel('Overhead: Median')
-    plt.savefig(folder + model_name +'_q1VSmedian.png')
-    plt.close()
+    # plt.scatter(new_array[:,3], new_array[:,4], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: 1st Quartile')
+    # plt.xlabel('Overhead: Median')
+    # plt.savefig(folder + model_name +'_q1VSmedian.png')
+    # plt.close()
 
 
-    plt.scatter(new_array[:,5], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
-    plt.ylabel('Overhead: Median')
-    plt.xlabel('Overhead: 3rd Quartile')
-    plt.savefig(folder + model_name +'_medianVSq3.png')
-    plt.close()
+    # plt.scatter(new_array[:,5], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
+    # plt.ylabel('Overhead: Median')
+    # plt.xlabel('Overhead: 3rd Quartile')
+    # plt.savefig(folder + model_name +'_medianVSq3.png')
+    # plt.close()
 
     plt.scatter(new_array[:,0], new_array[:,1], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')
     plt.ylabel('Number of cars')

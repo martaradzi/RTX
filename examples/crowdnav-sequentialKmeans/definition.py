@@ -3,11 +3,11 @@ import numpy as np
 name = "CrowdNav-Sequentialk-MeansClustering"
 
 execution_strategy = {
-    "ignore_first_n_ticks": 0,
-    "sample_size": 3,
-    "ticks_per_sample": 1000,
-    "partial_clustering_sample_size": 2,
-    "save_in": './experiments/11/',
+    "ignore_first_n_ticks": 1500,
+    "sample_size": 288,
+    "ticks_per_sample": 3500,
+    "partial_clustering_sample_size":18,
+    "save_in": './experiments/k_means_repetition1/',
     "type": "sequential-k-means-clustering",
 }
 

@@ -9,7 +9,7 @@ from sklearn.cluster import Birch
 import numpy as np
 import copy
 import csv
-import wandb
+#import wandb
 
 
 def start_k_menas_clustering_strategy(wf):
@@ -44,7 +44,7 @@ def start_k_menas_clustering_strategy(wf):
         'duration',
     ]
 
-    wandb.init(project='sequential_k-means_clustering', name="test_run_1")
+    #wandb.init(project='sequential_k-means_clustering', name="test_run_1")
     kmeansModel = kMeans()
 
     number_of_submodels_trained = 1
@@ -89,7 +89,7 @@ def start_k_menas_clustering_strategy(wf):
                 plt.ylabel('Median')
                 plt.xlabel('90th percentile')
                 plt.savefig(folder + number_of_submodels_trained +'_med_90thpercentile.png')
-                wandb.log({f'Fit_{number_of_submodels_trained}': plt})
+                #wandb.log({f'Fit_{number_of_submodels_trained}': plt})
                 plt.close()
             
     # # at the end of the gathering process, if there is still data left for parial clustering, cluster it.

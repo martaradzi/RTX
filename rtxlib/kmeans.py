@@ -101,7 +101,7 @@ class kMeans:
         figure, axs = plt.subplots(nrows=1, ncols=2,figsize=(14,4))                       
 
         axs[0].scatter(data[:,5], data[:,4], c=labels, cmap='rainbow', alpha=0.7)
-        axs[0]..set_ylim(0, 750)
+        axs[0].set_ylim(0, 750)
         axs[0].set_ylabel('Number of cars')
         axs[0].set_xlabel('Time')
 

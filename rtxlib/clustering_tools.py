@@ -15,7 +15,7 @@ import csv
 from sklearn.utils.testing import ignore_warnings
 from sklearn.exceptions import ConvergenceWarning
 
-import wandb
+#import wandb
 
 def transfrom_to_nparray(data, feature_array):
     """ Transform the gathered data to numpy array to fit the model's requirements,
@@ -83,8 +83,8 @@ def plot_silhouette_scores(model, test_data, n_clusters_min, n_clusters_max, fol
                     # print("The highest silhouette scores(" + str(max_score) + ") is for " + str(i[0]) + " clusers")
                     info("> Optimal number of clusters  | " + str(int(i[0])), Fore.CYAN)
                     info("> Silhouette Score     | " + str(max_score), Fore.CYAN)
-                    wandb.log({f'Silhouette Score': max_score,
-                              f'Number of clusters': int(i[0])})
+                    #wandb.log({f'Silhouette Score': max_score,
+                    #          f'Number of clusters': int(i[0])})
                     return int(i[0])
                 
         except ValueError:
@@ -115,7 +115,7 @@ def run_model(model, test_data, model_name, folder):
     create_graphs(new_array, labels, folder, model_name)
     pca_plotting(new_array[:, 3:6], labels, folder, model_name)
 
-    wandb.sklearn.plot_clusterer(model, new_array[:, 3:6], labels, labels=None, model_name=model_name)
+    #wandb.sklearn.plot_clusterer(model, new_array[:, 3:6], labels, labels=None, model_name=model_name)
 
 
     info("> New graphs were created", Fore.CYAN) 
@@ -239,7 +239,7 @@ def create_graphs(new_array, labels, folder, model_name):
     plt.ylabel('Car Number')
     plt.xlabel('Index')
     plt.savefig(folder + model_name +'_car_over_time.png')
-    wandb.log({f'Fit_{model_name}': plt})
+    #wandb.log({f'Fit_{model_name}': plt})
     plt.close()
     
     plt.scatter(new_array[:,1], new_array[:,3], c=labels, cmap='rainbow', alpha=0.7, edgecolors='b')

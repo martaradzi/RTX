@@ -6,7 +6,7 @@ execution_strategy = {
     "ignore_first_n_ticks": 1500,
     "sample_size": 288,
     "ticks_per_sample": 3500,
-    "partial_clustering_sample_size": 18,
+    "partial_clustering_sample_size": 1800,
     "save_in": './experiments/random_seed_1.1/',
     "type": "birch-clustering",
 }

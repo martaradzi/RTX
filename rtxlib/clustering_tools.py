@@ -134,14 +134,13 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
         pre_labels = []
 
     #data_for_clustering =  exclude_outliers_modified_z_score(data_for_clustering, feature_array[3:])
-    data_for_clustering = transfrom_to_nparray(data_for_clustering, feature_array)
+    data_for_clustering = transfrom_to_nparray(data_for_clustering, feature_array[3:])
     model.partial_fit(data_for_clustering)
     current_number_of_subclusters =  len(model.subcluster_labels_)
 
     info("> Partial clustering performed", Fore.CYAN)    
     # check if number of sublusters is the same after partial clustering
     if pre_number_of_subclusters != current_number_of_subclusters:
-
         cpy_model = copy.deepcopy(model)
         run_model(cpy_model, data, (str(name) + '_partial_clustering_'), folder)
 

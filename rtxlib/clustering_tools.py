@@ -133,7 +133,8 @@ def partial_clustering(model, data, data_for_clustering, feature_array,  folder,
         pre_number_of_subclusters = 0
         pre_labels = []
 
-    data_for_clustering =  exclude_outliers_modified_z_score(data_for_clustering, feature_array[3:])
+    #data_for_clustering =  exclude_outliers_modified_z_score(data_for_clustering, feature_array[3:])
+    data_for_clustering = transfrom_to_nparray(data_for_clustering, feature_array)
     model.partial_fit(data_for_clustering)
     current_number_of_subclusters =  len(model.subcluster_labels_)
 

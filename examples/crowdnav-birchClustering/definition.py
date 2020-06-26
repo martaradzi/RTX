@@ -7,7 +7,7 @@ execution_strategy = {
     "sample_size": 288,
     "ticks_per_sample": 3500,
     "partial_clustering_sample_size": 1800,
-    "save_in": './experiments/random_seed_300/',
+    "save_in": './experiments/random_seed_500/',
     "type": "birch-clustering",
 }
 
